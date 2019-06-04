@@ -4,10 +4,17 @@ class Game {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.createScene();
+    this.world = null;
+    this.sphereBody = null;
+    this.groundBody = null;
+    this.timeStep = 1 / 60;
+    this.mesh = null;
+    this.initThree();
+    this.initCannon();
+    this.animate();
   }
 
-  createScene() {
+  initThree() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -24,7 +31,6 @@ class Game {
     this.scene.add(axes);
     this.camera.position.set(0, 2500, 2500);
     this.camera.lookAt(this.scene.position);
-    this.render();
 
     var orbitControl = new THREE.OrbitControls(
       this.camera,
@@ -47,11 +53,51 @@ class Game {
     platform.rotation.x = Math.PI / 2;
     this.scene.add(platform);
     this.createEdges();
+
+    var geometry = new THREE.BoxGeometry(2, 2, 2);
+    var material = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      wireframe: true
+    });
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.scene.add(this.mesh);
   }
 
-  render() {
+  animate() {
+    requestAnimationFrame(this.animate.bind(this));
+    this.updatePhysics();
     this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(this.render.bind(this));
+  }
+
+  initCannon() {
+    //stworzenie świata
+    this.world = new CANNON.World();
+    this.world.gravity.set(0, 0, -9.82); //ustawiamy grawitację
+    this.world.broadphase = new CANNON.NaiveBroadphase(); //służy do odnajdowania kolidujących obiektów
+
+    //stworzenie kulki do strzelania
+    var mass = 5,
+      radius = 1;
+    var sphereShape = new CANNON.Sphere(radius);
+    this.sphereBody = new CANNON.Body({ mass: mass, shape: sphereShape });
+    this.sphereBody.position.set(0, 0, 0);
+    this.world.add(this.sphereBody);
+
+    //dodanie podłogi
+    var groundShape = new CANNON.Plane(); //podłoga dla świata
+    this.groundBody = new CANNON.Body({ mass: 0, shape: groundShape });
+    this.world.add(this.groundBody);
+  }
+
+  updatePhysics() {
+    //ustawienie odświeżania
+    this.world.step(this.timeStep);
+
+    // console.log(
+    //   this.sphereBody.position.x,
+    //   this.sphereBody.position.y,
+    //   this.sphereBody.position.z
+    // );
   }
 
   createEdges() {

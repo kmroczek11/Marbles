@@ -17,7 +17,6 @@ class Marbles {
         var marble = new THREE.Mesh(settings.marbleGeometry, marbleMaterial);
         marble.position.set(x, y, z);
         var randomIndex = Math.floor(Math.random() * 3 + 0);
-        console.log(randomIndex);
         marble.material.color.setHex(this.colors[randomIndex]);
         game.scene.add(marble);
         x += 200;

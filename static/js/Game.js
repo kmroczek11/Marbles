@@ -5,10 +5,10 @@ class Game {
     this.camera = null;
     this.renderer = null;
     this.world = null;
-    this.sphereBody = null;
-    this.groundBody = null;
+    this.marbleBody = null;
+    this.planeBody = null;
     this.timeStep = 1 / 60;
-    this.mesh = null;
+    this.marbleForShooting = null;
     this.initThree();
     this.initCannon();
     this.animate();
@@ -54,13 +54,11 @@ class Game {
     this.scene.add(platform);
     this.createEdges();
 
-    var geometry = new THREE.BoxGeometry(2, 2, 2);
     var material = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
-      wireframe: true
+      color: 0xff0000
     });
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.scene.add(this.mesh);
+    this.marbleForShooting = new THREE.Mesh(settings.marbleGeometry, material);
+    this.scene.add(this.marbleForShooting);
   }
 
   animate() {
@@ -75,28 +73,41 @@ class Game {
     this.world.gravity.set(0, 0, -9.82); //ustawiamy grawitację
     this.world.broadphase = new CANNON.NaiveBroadphase(); //służy do odnajdowania kolidujących obiektów
 
+    //dodanie podłogi
+    var planeShape = new CANNON.Plane(); //podłoga dla świata
+    var planeMaterial = new CANNON.Material();
+    this.planeBody = new CANNON.Body({
+      mass: 0,
+      shape: planeShape,
+      material: planeMaterial
+    });
+    this.planeBody.quaternion.setFromAxisAngle(
+      new CANNON.Vec3(1, 0, 0),
+      -Math.PI / 2
+    );
+    this.world.add(this.planeBody);
+
     //stworzenie kulki do strzelania
     var mass = 5,
-      radius = 1;
-    var sphereShape = new CANNON.Sphere(radius);
-    this.sphereBody = new CANNON.Body({ mass: mass, shape: sphereShape });
-    this.sphereBody.position.set(0, 0, 0);
-    this.world.add(this.sphereBody);
-
-    //dodanie podłogi
-    var groundShape = new CANNON.Plane(); //podłoga dla świata
-    this.groundBody = new CANNON.Body({ mass: 0, shape: groundShape });
-    this.world.add(this.groundBody);
+      radius = 100;
+    var marbleShape = new CANNON.Sphere(radius);
+    var marbleMaterial = new CANNON.Material();
+    this.marbleBody = new CANNON.Body({
+      mass: mass,
+      shape: marbleShape,
+      material: marbleMaterial
+    });
+    this.world.add(this.marbleBody);
   }
 
   updatePhysics() {
     //ustawienie odświeżania
     this.world.step(this.timeStep);
-
+    this.marbleForShooting.position.copy(this.marbleBody.position);
     // console.log(
-    //   this.sphereBody.position.x,
-    //   this.sphereBody.position.y,
-    //   this.sphereBody.position.z
+    //   this.marbleForShooting.position.x,
+    //   this.marbleForShooting.position.y,
+    //   this.marbleForShooting.position.z
     // );
   }
 

@@ -6,16 +6,20 @@ var settings = {
     side: THREE.DoubleSide
   }),
 
-  edgeGeometry: new THREE.BoxGeometry(2000, 50, 50),
+  edgeGeometry: new THREE.BoxGeometry(2000, 200, 20),
 
   edgeMaterial: new THREE.MeshBasicMaterial({
     color: 0xd3d3d3,
     side: THREE.DoubleSide
   }),
 
-  wallGeometry: new THREE.BoxGeometry(200, 50, 50),
-  wallMaterial: new THREE.MeshBasicMaterial({
-    side: THREE.DoubleSide,
-    map: new THREE.TextureLoader().load("../gfx/wall.jpg")
-  })
+  marbleGeometry: new THREE.SphereGeometry(
+    100,
+    50,
+    50,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI * 2
+  )
 };

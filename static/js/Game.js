@@ -31,7 +31,7 @@ class Game {
       this.renderer.domElement
     );
     orbitControl.addEventListener("change", function() {
-      main3d.renderer.render(main3d.scene, main3d.camera);
+      game.renderer.render(game.scene, game.camera);
     });
 
     $(window).on("resize", function() {
@@ -60,17 +60,17 @@ class Game {
       var edge = new THREE.Mesh(settings.edgeGeometry);
       switch (i) {
         case 0:
-          edge.position.set(0, 25, 975);
+          edge.position.set(0, 100, 990);
           break;
         case 1:
-          edge.position.set(0, 25, -975);
+          edge.position.set(0, 100, -990);
           break;
         case 2:
-          edge.position.set(-975, 25, 0);
+          edge.position.set(-990, 100, 0);
           edge.rotation.y = Math.PI / 2;
           break;
         case 3:
-          edge.position.set(975, 25, 0);
+          edge.position.set(990, 100, 0);
           edge.rotation.y = Math.PI / 2;
           break;
       }

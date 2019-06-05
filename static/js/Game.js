@@ -1,6 +1,5 @@
 class Game {
   constructor() {
-    console.log("Konstruktor klasy Game.");
     this.scene = null;
     this.camera = null;
     this.renderer = null;
@@ -21,32 +20,36 @@ class Game {
     );
 
     //renderer
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setClearColor(0xffffff);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setClearColor(0x444444);
     this.renderer.setSize($(window).width(), $(window).height());
+    //this.renderer.shadowMap.enabled = true;
+    //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     $("#root").append(this.renderer.domElement);
 
     //osie
-    var axes = new THREE.AxesHelper(1000);
-    axes.position.set(0, 25, 0); //podniesienie osi, aby były widoczne
-    this.scene.add(axes);
-    this.camera.position.set(0, 2500, 2500);
+    //var axes = new THREE.AxesHelper(1000);
+    //axes.position.set(0, 25, 0); //podniesienie osi, aby były widoczne
+    //this.scene.add(axes);
+
+    this.camera.position.set(0, 1900, 1700);
     this.camera.lookAt(this.scene.position);
 
     //światła
-    var ambient = new THREE.AmbientLight(0x111111);
+    var ambient = new THREE.AmbientLight(0x222222);
     this.scene.add(ambient);
-    var light = new THREE.SpotLight(0xffffff);
-    light.position.set(10, 30, 20);
-    light.target.position.set(0, 0, 0);
-    this.scene.add(light);
+    //var light = new THREE.SpotLight(0xffffff);
+    //light.position.set(10, 30, 20);
+    //light.target.position.set(0, 0, 0);
+    //this.scene.add(light);
+    this.scene.add(new Light(0, 2500, 0, 5000))
 
     //orbitControl
     var orbitControl = new THREE.OrbitControls(
       this.camera,
       this.renderer.domElement
     );
-    orbitControl.addEventListener("change", function() {
+    orbitControl.addEventListener("change", function () {
       game.renderer.render(game.scene, game.camera);
     });
 
@@ -56,7 +59,7 @@ class Game {
       settings.platformMaterial
     );
     platform.rotation.x = Math.PI / 2;
-    platform.castShadow = true;
+    platform.castShadow = false;
     platform.receiveShadow = true;
     platform.name = "platform";
     this.scene.add(platform);
@@ -83,7 +86,7 @@ class Game {
   animate() {
     requestAnimationFrame(this.animate.bind(this));
     if (this.directionVect != null) {
-      this.marbleForShooting.translateOnAxis(this.directionVect, 20); // 5 - przewidywany speed
+      this.marbleForShooting.translateOnAxis(this.directionVect, 40); // 5 - przewidywany speed
       this.marbleForShooting.position.y = 100;
       this.checkIfCollides();
     }
@@ -91,7 +94,7 @@ class Game {
   }
 
   resizeWindow() {
-    $(window).on("resize", function() {
+    $(window).on("resize", function () {
       game.camera.aspect = window.innerWidth / window.innerHeight;
       game.camera.updateProjectionMatrix();
       game.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -104,22 +107,27 @@ class Game {
       var edge = new THREE.Mesh(settings.edgeGeometry);
       switch (i) {
         case 0:
-          edge.position.set(0, 100, 990);
+          //edge.position.set(0, 100, 990);
           break;
         case 1:
-          edge.position.set(0, 100, -990);
+          //edge.position.set(0, 200, -1700);
+          //edge.updateMatrix();
+          //singleGeometry.merge(edge.geometry, edge.matrix);
           break;
         case 2:
-          edge.position.set(-990, 100, 0);
+          edge.position.set(-1200, 200, 0);
           edge.rotation.y = Math.PI / 2;
+          edge.updateMatrix();
+          singleGeometry.merge(edge.geometry, edge.matrix);
           break;
         case 3:
-          edge.position.set(990, 100, 0);
+          edge.position.set(1200, 200, 0);
           edge.rotation.y = Math.PI / 2;
+          edge.updateMatrix();
+          singleGeometry.merge(edge.geometry, edge.matrix);
           break;
       }
-      edge.updateMatrix(); // bez tego pozycja geometrii jest zawsze 0,0,0
-      singleGeometry.merge(edge.geometry, edge.matrix);
+
     }
     var edges = new THREE.Mesh(singleGeometry, settings.edgeMaterial);
     edges.name = "wall";
@@ -127,7 +135,7 @@ class Game {
   }
 
   shoot() {
-    $(document).mousedown(function(event) {
+    $(document).mousedown(function (event) {
       game.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
       game.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
       game.raycaster.setFromCamera(game.mouseVector, game.camera);
@@ -169,8 +177,8 @@ class Game {
         collisionResults[0].distance < directionVector.length()
       ) {
         // a collision occurred... do something...
-        console.log(collisionResults[0].object.name);
-        alert("Kolizja");
+        //console.log(collisionResults[0].object.name);
+        //alert("Kolizja");
       }
     }
   }

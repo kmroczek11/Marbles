@@ -2,6 +2,7 @@ class Marbles {
   constructor() {
     console.log("Konstruktor klasy Marbles.");
     this.colors = [0xff0000, 0x00ff00, 0x0000ff];
+    this.collidableMarblesList = [];
     this.createMarbles(4);
   }
 
@@ -18,6 +19,8 @@ class Marbles {
         marble.position.set(x, y, z);
         var randomIndex = Math.floor(Math.random() * 3 + 0);
         marble.material.color.setHex(this.colors[randomIndex]);
+        marble.name = "marble";
+        this.collidableMarblesList.push(marble);
         game.scene.add(marble);
         x += 200;
       }

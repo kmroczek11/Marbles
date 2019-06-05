@@ -21,5 +21,9 @@ var settings = {
     Math.PI * 2,
     0,
     Math.PI * 2
-  )
+  ),
+
+  marbleMaterial: new THREE.MeshBasicMaterial({
+    color: 0xff0000
+  })
 };

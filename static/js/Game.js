@@ -4,17 +4,14 @@ class Game {
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.world = null;
-    this.marbleBody = null;
-    this.planeBody = null;
-    this.timeStep = 1 / 60;
     this.marbleForShooting = null;
     this.initThree();
-    this.initCannon();
     this.animate();
+    this.shoot();
   }
 
   initThree() {
+    //scena i kamera
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -22,16 +19,29 @@ class Game {
       0.1,
       10000
     );
+
+    //renderer
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setClearColor(0xffffff);
     this.renderer.setSize($(window).width(), $(window).height());
     $("#root").append(this.renderer.domElement);
+
+    //osie
     var axes = new THREE.AxesHelper(1000);
     axes.position.set(0, 25, 0); //podniesienie osi, aby były widoczne
     this.scene.add(axes);
     this.camera.position.set(0, 2500, 2500);
     this.camera.lookAt(this.scene.position);
 
+    //światła
+    var ambient = new THREE.AmbientLight(0x111111);
+    this.scene.add(ambient);
+    var light = new THREE.SpotLight(0xffffff);
+    light.position.set(10, 30, 20);
+    light.target.position.set(0, 0, 0);
+    this.scene.add(light);
+
+    //orbitControl
     var orbitControl = new THREE.OrbitControls(
       this.camera,
       this.renderer.domElement
@@ -40,75 +50,52 @@ class Game {
       game.renderer.render(game.scene, game.camera);
     });
 
-    $(window).on("resize", function() {
-      game.camera.aspect = window.innerWidth / window.innerHeight;
-      game.camera.updateProjectionMatrix();
-      game.renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
+    //stworzenie podłogi
     var platform = new THREE.Mesh(
       settings.platformGeometry,
       settings.platformMaterial
     );
     platform.rotation.x = Math.PI / 2;
+    platform.castShadow = true;
+    platform.receiveShadow = true;
+    platform.name = "platform";
     this.scene.add(platform);
-    this.createEdges();
 
-    var material = new THREE.MeshBasicMaterial({
-      color: 0xff0000
-    });
-    this.marbleForShooting = new THREE.Mesh(settings.marbleGeometry, material);
+    //stworzenie kulki do strzelania
+    this.marbleForShooting = new THREE.Mesh(
+      settings.marbleGeometry,
+      settings.marbleMaterial
+    );
+    this.marbleForShooting.castShadow = true;
+    this.marbleForShooting.receiveShadow = true;
+    this.marbleForShooting.position.set(0, 100, 900);
+    this.marbleForShooting.name = "marbleForShooting";
     this.scene.add(this.marbleForShooting);
+
+    //stworzenie raycastera
+    this.raycaster = new THREE.Raycaster(); // obiekt symulujący "rzucanie" promieni
+    this.mouseVector = new THREE.Vector2(); // ten wektor czyli pozycja w przestrzeni 2D na ekranie(x,y) wykorzystany będzie do określenie pozycji myszy na ekranie a potem przeliczenia na pozycje 3D
+
+    this.resizeWindow();
+    this.createEdges();
   }
 
   animate() {
     requestAnimationFrame(this.animate.bind(this));
-    this.updatePhysics();
+    if (this.directionVect != null) {
+      this.marbleForShooting.translateOnAxis(this.directionVect, 20); // 5 - przewidywany speed
+      this.marbleForShooting.position.y = 100;
+      this.checkIfCollides();
+    }
     this.renderer.render(this.scene, this.camera);
   }
 
-  initCannon() {
-    //stworzenie świata
-    this.world = new CANNON.World();
-    this.world.gravity.set(0, 0, -9.82); //ustawiamy grawitację
-    this.world.broadphase = new CANNON.NaiveBroadphase(); //służy do odnajdowania kolidujących obiektów
-
-    //dodanie podłogi
-    var planeShape = new CANNON.Plane(); //podłoga dla świata
-    var planeMaterial = new CANNON.Material();
-    this.planeBody = new CANNON.Body({
-      mass: 0,
-      shape: planeShape,
-      material: planeMaterial
+  resizeWindow() {
+    $(window).on("resize", function() {
+      game.camera.aspect = window.innerWidth / window.innerHeight;
+      game.camera.updateProjectionMatrix();
+      game.renderer.setSize(window.innerWidth, window.innerHeight);
     });
-    this.planeBody.quaternion.setFromAxisAngle(
-      new CANNON.Vec3(1, 0, 0),
-      -Math.PI / 2
-    );
-    this.world.add(this.planeBody);
-
-    //stworzenie kulki do strzelania
-    var mass = 5,
-      radius = 100;
-    var marbleShape = new CANNON.Sphere(radius);
-    var marbleMaterial = new CANNON.Material();
-    this.marbleBody = new CANNON.Body({
-      mass: mass,
-      shape: marbleShape,
-      material: marbleMaterial
-    });
-    this.world.add(this.marbleBody);
-  }
-
-  updatePhysics() {
-    //ustawienie odświeżania
-    this.world.step(this.timeStep);
-    this.marbleForShooting.position.copy(this.marbleBody.position);
-    // console.log(
-    //   this.marbleForShooting.position.x,
-    //   this.marbleForShooting.position.y,
-    //   this.marbleForShooting.position.z
-    // );
   }
 
   createEdges() {
@@ -135,6 +122,56 @@ class Game {
       singleGeometry.merge(edge.geometry, edge.matrix);
     }
     var edges = new THREE.Mesh(singleGeometry, settings.edgeMaterial);
+    edges.name = "wall";
     this.scene.add(edges);
+  }
+
+  shoot() {
+    $(document).mousedown(function(event) {
+      game.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
+      game.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
+      game.raycaster.setFromCamera(game.mouseVector, game.camera);
+      var intersects = game.raycaster.intersectObjects(game.scene.children);
+      if (intersects.length > 0) {
+        console.log("Trafiono w ", intersects[0].object.name);
+        game.clickedVect = intersects[0].point;
+        // console.log("Wektor klikniętego punktu ", game.clickedVect);
+        game.directionVect = game.clickedVect
+          .clone()
+          .sub(game.marbleForShooting.position)
+          .normalize();
+        // console.log("Wektor kierunkowy ", game.directionVect);
+        //funkcja normalize() przelicza współrzędne x,y,z wektora na zakres 0-1
+        //jest to wymagane przez kolejne funkcje
+      }
+    });
+  }
+
+  checkIfCollides() {
+    var mainMarble = this.marbleForShooting;
+    var ray = new THREE.Raycaster();
+    for (
+      var vertexIndex = 0;
+      vertexIndex < mainMarble.geometry.vertices.length;
+      vertexIndex++
+    ) {
+      var localVertex = mainMarble.geometry.vertices[vertexIndex].clone();
+      var globalVertex = localVertex.applyMatrix4(mainMarble.matrix);
+      var directionVector = globalVertex.sub(mainMarble.position);
+
+      ray.set(mainMarble.position, directionVector.clone().normalize());
+
+      var collisionResults = ray.intersectObjects(
+        marbles.collidableMarblesList
+      );
+      if (
+        collisionResults.length > 0 &&
+        collisionResults[0].distance < directionVector.length()
+      ) {
+        // a collision occurred... do something...
+        console.log(collisionResults[0].object.name);
+        alert("Kolizja");
+      }
+    }
   }
 }

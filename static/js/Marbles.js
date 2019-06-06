@@ -10,11 +10,9 @@ class Marbles {
 
   create2DArray(rows) {
     var arr = [];
-
     for (var i = 0; i < rows; i++) {
       arr[i] = [];
     }
-
     return arr;
   }
 
@@ -26,13 +24,11 @@ class Marbles {
     var z = -2000;
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < 10; j++) {
-        var marbleMaterial = new THREE.MeshLambertMaterial({});
-        var marble = new THREE.Mesh(settings.marbleGeometry, marbleMaterial);
+        var marble = new Marble();
         marble.position.set(x, y, z);
-        var randomIndex = game.generateRandomColor(marble);
+        var randomIndex = Math.floor(Math.random() * 3 + 0);
+        marble.materialColor = settings.colors[randomIndex];
         marble.name = "marble_" + i + " " + j;
-        marble.castShadow = true;
-        marble.receiveShadow = false;
         this.collidableMarblesList2D[i][j] = marble;
         this.marblesColorsArray[i][j] = randomIndex;
         this.collidableMarblesList1D.push(marble);
@@ -45,51 +41,108 @@ class Marbles {
   }
 
   destroyMarbles(strikedMarble) {
+    var data = this.getRowAndColumn(strikedMarble);
+    // console.log("Wiersz:", row, "Kolumna:", column);
+    var color = game.marbleForShooting.randomColor;
+
+    this.checkPoints(data[0], data[1], color);
+  }
+
+  getRowAndColumn(strikedMarble) {
     var id = strikedMarble.substring(
       strikedMarble.indexOf("_") + 1,
       strikedMarble.length
     );
     var row = parseInt(id.split(" ")[0]);
     var column = parseInt(id.split(" ")[1]);
-    // console.log("Wiersz:", row, "Kolumna:", column);
-    var color = game.marbleForShooting.randomColor;
-
-    this.checkPoints(row, column, color);
+    return [row, column];
   }
 
   checkPoints(row, column, color) {
-    if (this.deleteStriked(row, column, color)) {
-      this.goLeft(row, column, color);
-      this.goRight(row, column, color);
-      this.goUp(row, column, color);
-      console.log("Punkty", this.points);
+    console.log(row, column, color);
+    this.goUp(row, column, color);
+    console.log("Punkty", this.points);
+    if (this.points > 2) {
+      game.marbleForShooting.position.set(0, 100, 900);
+    } else {
+      //manipulacja kulką, którą strzelaliśmy, dodanie jej do rzędu kulek
+      game.marbleForShooting.position.z += 100;
+      var data = this.getRowAndColumn(game.strikedMarble);
+      var row = data[0] + 1;
+      var column = data[1];
+      game.marbleForShooting.name = "marble_" + row + " " + column;
+      console.log("Id nowej kulki", game.marbleForShooting.name);
+      this.collidableMarblesList1D.push(game.marbleForShooting);
+      if (this.collidableMarblesList2D[row] == undefined) {
+        console.log("Stworzenie pustego rzędu.");
+        this.collidableMarblesList2D[row] = [];
+        this.marblesColorsArray[row] = [];
+        for (let i = 0; i < 10; i++) {
+          this.collidableMarblesList2D[row][i] = null;
+          this.marblesColorsArray[row][i] = null;
+        }
+        this.collidableMarblesList2D[row][column] = game.marbleForShooting;
+        this.marblesColorsArray[row][column] =
+          game.marbleForShooting.randomColor;
+        // console.log("Tablica meshy", this.collidableMarblesList2D);
+        // console.log("Tablica kolorów", this.marblesColorsArray);
+      } else {
+        this.collidableMarblesList2D[row][column] = game.marbleForShooting;
+        this.marblesColorsArray[row][column] =
+          game.marbleForShooting.randomColor;
+        // console.log("Tablica meshy", this.collidableMarblesList2D);
+        // console.log("Tablica kolorów", this.marblesColorsArray);
+      }
+      game.createMarbleForShooting();
     }
-    game.marbleForShooting.position.set(0, 100, 900);
+
+    this.points = 0;
   }
 
-  //w lewy bok
-  goLeft(row, column, color) {
-    for (let i = column - 1; i >= 0; i--) {
-      if (this.marblesColorsArray[row][i] == color) {
-        console.log("Kolejny kolor obok z lewej.");
-        this.removeMarbleFromScene(this.collidableMarblesList2D[row][i]);
+  // //w górę
+  // goUp(row, column, color) {
+  //   for (let i = row - 1; i >= 0; i--) {
+  //     if (this.marblesColorsArray[i][column] == color) {
+  //       console.log("Kolejny kolor obok w górę.");
+  //       this.removeMarbleFromScene(this.collidableMarblesList2D[i][column]);
+  //       this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
+  //       this.removeMarbleFromList2D(i, column);
+  //       this.points++;
+  //     } else {
+  //       break;
+  //     }
+  //   }
+  // }
+
+  goUp(row, column, color) {
+    for (let i = row; i >= 0; i--) {
+      if (this.marblesColorsArray[i][column] == color) {
+        console.log("Index " + i + " " + column + " w górę zgadza się.");
+        this.removeMarbleFromScene(this.collidableMarblesList2D[i][column]);
         this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
-        this.removeMarbleFromList2D(row, i);
+        this.removeMarbleFromList2D(i, column);
         this.points++;
+        this.goLeft(i, column, color);
+        this.goRight(i, column, color);
       } else {
         break;
       }
     }
   }
 
-  //usunięcie trafionej
-  deleteStriked(row, column, color) {
-    if (this.marblesColorsArray[row][column] == color) {
-      this.removeMarbleFromScene(this.collidableMarblesList2D[row][column]);
-      this.removeMarbleFromList1D(this.collidableMarblesList2D[row][column]);
-      this.removeMarbleFromList2D(row, column);
-      this.points++;
-      return true;
+  //w lewy bok
+  goLeft(row, column, color) {
+    for (let i = column - 1; i >= 0; i--) {
+      if (this.marblesColorsArray[row][i] == color) {
+        console.log("Index " + i + " " + column + " w lewo zgadza się.");
+        this.removeMarbleFromScene(this.collidableMarblesList2D[row][i]);
+        this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
+        this.removeMarbleFromList2D(row, i);
+        this.points++;
+        this.goUp(row, i, color);
+      } else {
+        break;
+      }
     }
   }
 
@@ -97,26 +150,12 @@ class Marbles {
   goRight(row, column, color) {
     for (let i = column + 1; i < 10; i++) {
       if (this.marblesColorsArray[row][i] == color) {
-        console.log("Kolejny kolor obok z prawej.");
+        console.log("Index " + i + " " + column + " w prawo zgadza się.");
         this.removeMarbleFromScene(this.collidableMarblesList2D[row][i]);
         this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
         this.removeMarbleFromList2D(row, i);
         this.points++;
-      } else {
-        break;
-      }
-    }
-  }
-
-  //w górę
-  goUp(row, column, color) {
-    for (let i = row - 1; i >= 0; i--) {
-      if (this.marblesColorsArray[i][column] == color) {
-        console.log("Kolejny kolor obok w górę.");
-        this.removeMarbleFromScene(this.collidableMarblesList2D[i][column]);
-        this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
-        this.removeMarbleFromList2D(i, column);
-        this.points++;
+        this.goUp(row, i, color);
       } else {
         break;
       }
@@ -124,9 +163,9 @@ class Marbles {
   }
 
   removeMarbleFromScene(marble) {
+    console.log("Usuwanie " + marble.name);
     var selectedObject = game.scene.getObjectByName(marble.name);
     game.scene.remove(selectedObject);
-    game.animate();
   }
 
   removeMarbleFromList1D(marble) {
@@ -137,8 +176,23 @@ class Marbles {
     }
   }
 
-  removeMarbleFromList2D(i, j) {
-    this.collidableMarblesList2D[i][j] = "";
-    console.log(this.collidableMarblesList2D);
+  removeMarbleFromList2D(row, column) {
+    //usuwanie z tablicy meshów i kolorów
+    this.collidableMarblesList2D[row][column] = null;
+    this.marblesColorsArray[row][column] = null;
+    var rowIsEmpty = true;
+    for (let i = 0; i < 10; i++) {
+      if (this.collidableMarblesList2D[row][i] != null) {
+        rowIsEmpty = false;
+        break;
+      }
+    }
+    if (rowIsEmpty) {
+      console.log("Pusty rząd.");
+      this.collidableMarblesList2D.splice(row, 1);
+      this.marblesColorsArray.splice(row, i);
+    }
+    // console.log("Tablica meshy", this.collidableMarblesList2D);
+    // console.log("Tablica kolorów", this.marblesColorsArray);
   }
 }

@@ -5,7 +5,7 @@ class Game {
     this.renderer = null;
     this.marbleForShooting = null;
     this.moving = false;
-    this.colors = [0xff0000, 0x00ff00, 0x0000ff];
+    this.strikedMarble = null;
     this.initThree();
     this.shoot();
   }
@@ -66,17 +66,7 @@ class Game {
     this.scene.add(platform);
 
     //stworzenie kulki do strzelania
-    this.marbleForShooting = new THREE.Mesh(
-      settings.marbleGeometry,
-      settings.marbleMaterial
-    );
-    this.marbleForShooting.castShadow = true;
-    this.marbleForShooting.receiveShadow = true;
-    this.marbleForShooting.position.set(0, 100, 900);
-    var generatedColor = this.generateRandomColor(this.marbleForShooting);
-    this.marbleForShooting.randomColor = generatedColor;
-    this.marbleForShooting.name = "marbleForShooting";
-    this.scene.add(this.marbleForShooting);
+    this.createMarbleForShooting();
 
     //stworzenie raycastera
     this.raycaster = new THREE.Raycaster(); // obiekt symulujący "rzucanie" promieni
@@ -85,6 +75,16 @@ class Game {
     this.animate();
     this.resizeWindow();
     this.createEdges();
+  }
+
+  createMarbleForShooting() {
+    this.marbleForShooting = new Marble();
+    var randomIndex = Math.floor(Math.random() * 3 + 0);
+    this.marbleForShooting.materialColor = settings.colors[randomIndex];
+    this.marbleForShooting.position.set(0, 100, 900);
+    this.marbleForShooting.name = "marbleForShooting";
+    this.marbleForShooting.randomColor = randomIndex;
+    this.scene.add(this.marbleForShooting);
   }
 
   stats() {
@@ -99,12 +99,6 @@ class Game {
     };
     script.src = "//mrdoob.github.io/stats.js/build/stats.min.js";
     document.head.appendChild(script);
-  }
-
-  generateRandomColor(marble) {
-    var randomIndex = Math.floor(Math.random() * 3 + 0);
-    marble.material.color.setHex(this.colors[randomIndex]);
-    return randomIndex;
   }
 
   animate() {
@@ -204,8 +198,8 @@ class Game {
       ) {
         // a collision occurred... do something...
         callback();
-        var strikedMarble = collisionResults[0].object.name;
-        marbles.destroyMarbles(strikedMarble);
+        this.strikedMarble = collisionResults[0].object.name;
+        marbles.destroyMarbles(this.strikedMarble);
         break;
         //alert("Kolizja");
       }

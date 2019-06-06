@@ -13,15 +13,5 @@ var settings = {
     side: THREE.DoubleSide
   }),
 
-  marbleGeometry: new THREE.SphereGeometry(
-    100,
-    50,
-    50,
-    0,
-    Math.PI * 2,
-    0,
-    Math.PI * 2
-  ),
-
-  marbleMaterial: new THREE.MeshLambertMaterial({})
+  colors: [0xff0000, 0x00ff00, 0x0000ff]
 };

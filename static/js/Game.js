@@ -4,8 +4,9 @@ class Game {
     this.camera = null;
     this.renderer = null;
     this.marbleForShooting = null;
+    this.moving = false;
+    this.colors = [0xff0000, 0x00ff00, 0x0000ff];
     this.initThree();
-    this.animate();
     this.shoot();
   }
 
@@ -42,14 +43,14 @@ class Game {
     //light.position.set(10, 30, 20);
     //light.target.position.set(0, 0, 0);
     //this.scene.add(light);
-    this.scene.add(new Light(0, 2500, 0, 5000))
+    this.scene.add(new Light(0, 2500, 0, 5000));
 
     //orbitControl
     var orbitControl = new THREE.OrbitControls(
       this.camera,
       this.renderer.domElement
     );
-    orbitControl.addEventListener("change", function () {
+    orbitControl.addEventListener("change", function() {
       game.renderer.render(game.scene, game.camera);
     });
 
@@ -72,6 +73,8 @@ class Game {
     this.marbleForShooting.castShadow = true;
     this.marbleForShooting.receiveShadow = true;
     this.marbleForShooting.position.set(0, 100, 900);
+    var generatedColor = this.generateRandomColor(this.marbleForShooting);
+    this.marbleForShooting.randomColor = generatedColor;
     this.marbleForShooting.name = "marbleForShooting";
     this.scene.add(this.marbleForShooting);
 
@@ -79,22 +82,45 @@ class Game {
     this.raycaster = new THREE.Raycaster(); // obiekt symulujący "rzucanie" promieni
     this.mouseVector = new THREE.Vector2(); // ten wektor czyli pozycja w przestrzeni 2D na ekranie(x,y) wykorzystany będzie do określenie pozycji myszy na ekranie a potem przeliczenia na pozycje 3D
 
+    this.animate();
     this.resizeWindow();
     this.createEdges();
   }
 
+  stats() {
+    var script = document.createElement("script");
+    script.onload = function() {
+      var stats = new Stats();
+      document.body.appendChild(stats.dom);
+      requestAnimationFrame(function loop() {
+        stats.update();
+        requestAnimationFrame(loop);
+      });
+    };
+    script.src = "//mrdoob.github.io/stats.js/build/stats.min.js";
+    document.head.appendChild(script);
+  }
+
+  generateRandomColor(marble) {
+    var randomIndex = Math.floor(Math.random() * 3 + 0);
+    marble.material.color.setHex(this.colors[randomIndex]);
+    return randomIndex;
+  }
+
   animate() {
     requestAnimationFrame(this.animate.bind(this));
-    if (this.directionVect != null) {
-      this.marbleForShooting.translateOnAxis(this.directionVect, 40); // 5 - przewidywany speed
+    if (this.moving) {
+      this.marbleForShooting.translateOnAxis(this.directionVect, 80); // 5 - przewidywany speed
       this.marbleForShooting.position.y = 100;
-      this.checkIfCollides();
+      this.checkIfCollides(function() {
+        game.moving = false;
+      });
     }
     this.renderer.render(this.scene, this.camera);
   }
 
   resizeWindow() {
-    $(window).on("resize", function () {
+    $(window).on("resize", function() {
       game.camera.aspect = window.innerWidth / window.innerHeight;
       game.camera.updateProjectionMatrix();
       game.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -127,7 +153,6 @@ class Game {
           singleGeometry.merge(edge.geometry, edge.matrix);
           break;
       }
-
     }
     var edges = new THREE.Mesh(singleGeometry, settings.edgeMaterial);
     edges.name = "wall";
@@ -135,7 +160,7 @@ class Game {
   }
 
   shoot() {
-    $(document).mousedown(function (event) {
+    $(document).mousedown(function(event) {
       game.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
       game.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
       game.raycaster.setFromCamera(game.mouseVector, game.camera);
@@ -151,11 +176,12 @@ class Game {
         // console.log("Wektor kierunkowy ", game.directionVect);
         //funkcja normalize() przelicza współrzędne x,y,z wektora na zakres 0-1
         //jest to wymagane przez kolejne funkcje
+        game.moving = true;
       }
     });
   }
 
-  checkIfCollides() {
+  checkIfCollides(callback) {
     var mainMarble = this.marbleForShooting;
     var ray = new THREE.Raycaster();
     for (
@@ -170,14 +196,17 @@ class Game {
       ray.set(mainMarble.position, directionVector.clone().normalize());
 
       var collisionResults = ray.intersectObjects(
-        marbles.collidableMarblesList
+        marbles.collidableMarblesList1D
       );
       if (
         collisionResults.length > 0 &&
         collisionResults[0].distance < directionVector.length()
       ) {
         // a collision occurred... do something...
-        //console.log(collisionResults[0].object.name);
+        callback();
+        var strikedMarble = collisionResults[0].object.name;
+        marbles.destroyMarbles(strikedMarble);
+        break;
         //alert("Kolizja");
       }
     }

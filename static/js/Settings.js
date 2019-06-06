@@ -2,7 +2,7 @@ var settings = {
   platformGeometry: new THREE.PlaneGeometry(10000, 10000, 50, 50),
 
   platformMaterial: new THREE.MeshToonMaterial({
-    color: 0xBBAAFF,
+    color: 0xbbaaff,
     side: THREE.DoubleSide
   }),
 
@@ -23,7 +23,5 @@ var settings = {
     Math.PI * 2
   ),
 
-  marbleMaterial: new THREE.MeshLambertMaterial({
-    color: 0xff0000
-  })
+  marbleMaterial: new THREE.MeshLambertMaterial({})
 };

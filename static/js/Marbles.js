@@ -1,7 +1,6 @@
 class Marbles {
   constructor(rows) {
-    this.collidableMarblesList2D = [];
-    this.collidableMarblesList1D = [];
+    this.marblesMeshesArray = [];
     this.marblesColorsArray = [];
     this.rows = rows;
     this.points = 0;
@@ -18,20 +17,21 @@ class Marbles {
 
   createMarbles(rows) {
     this.marblesColorsArray = this.create2DArray(rows);
-    this.collidableMarblesList2D = this.create2DArray(rows);
+    this.marblesMeshesArray = this.create2DArray(rows);
     var x = -1000;
     var y = 100;
     var z = -2000;
     for (let i = 0; i < rows; i++) {
+      if (i % 2 == 1) x += 125;
       for (let j = 0; j < 10; j++) {
         var marble = new Marble();
         marble.position.set(x, y, z);
         var randomIndex = Math.floor(Math.random() * 3 + 0);
         marble.materialColor = settings.colors[randomIndex];
         marble.name = "marble_" + i + " " + j;
-        this.collidableMarblesList2D[i][j] = marble;
+        this.marblesMeshesArray[i][j] = marble;
         this.marblesColorsArray[i][j] = randomIndex;
-        this.collidableMarblesList1D.push(marble);
+        game.collidableElementsArray.push(marble);
         game.scene.add(marble);
         x += 220;
       }
@@ -72,25 +72,25 @@ class Marbles {
       var column = data[1];
       game.marbleForShooting.name = "marble_" + row + " " + column;
       console.log("Id nowej kulki", game.marbleForShooting.name);
-      this.collidableMarblesList1D.push(game.marbleForShooting);
-      if (this.collidableMarblesList2D[row] == undefined) {
+      game.collidableElementsArray.push(game.marbleForShooting);
+      if (this.marblesMeshesArray[row] == undefined) {
         console.log("Stworzenie pustego rzędu.");
-        this.collidableMarblesList2D[row] = [];
+        this.marblesMeshesArray[row] = [];
         this.marblesColorsArray[row] = [];
         for (let i = 0; i < 10; i++) {
-          this.collidableMarblesList2D[row][i] = null;
+          this.marblesMeshesArray[row][i] = null;
           this.marblesColorsArray[row][i] = null;
         }
-        this.collidableMarblesList2D[row][column] = game.marbleForShooting;
+        this.marblesMeshesArray[row][column] = game.marbleForShooting;
         this.marblesColorsArray[row][column] =
           game.marbleForShooting.randomColor;
-        // console.log("Tablica meshy", this.collidableMarblesList2D);
+        // console.log("Tablica meshy", this.marblesMeshesArray);
         // console.log("Tablica kolorów", this.marblesColorsArray);
       } else {
-        this.collidableMarblesList2D[row][column] = game.marbleForShooting;
+        this.marblesMeshesArray[row][column] = game.marbleForShooting;
         this.marblesColorsArray[row][column] =
           game.marbleForShooting.randomColor;
-        // console.log("Tablica meshy", this.collidableMarblesList2D);
+        // console.log("Tablica meshy", this.marblesMeshesArray);
         // console.log("Tablica kolorów", this.marblesColorsArray);
       }
       game.createMarbleForShooting();
@@ -99,27 +99,12 @@ class Marbles {
     this.points = 0;
   }
 
-  // //w górę
-  // goUp(row, column, color) {
-  //   for (let i = row - 1; i >= 0; i--) {
-  //     if (this.marblesColorsArray[i][column] == color) {
-  //       console.log("Kolejny kolor obok w górę.");
-  //       this.removeMarbleFromScene(this.collidableMarblesList2D[i][column]);
-  //       this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
-  //       this.removeMarbleFromList2D(i, column);
-  //       this.points++;
-  //     } else {
-  //       break;
-  //     }
-  //   }
-  // }
-
   goUp(row, column, color) {
     for (let i = row; i >= 0; i--) {
       if (this.marblesColorsArray[i][column] == color) {
         console.log("Index " + i + " " + column + " w górę zgadza się.");
-        this.removeMarbleFromScene(this.collidableMarblesList2D[i][column]);
-        this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
+        this.removeMarbleFromScene(this.marblesMeshesArray[i][column]);
+        this.removeMarbleFromList1D(this.marblesMeshesArray[row][i]);
         this.removeMarbleFromList2D(i, column);
         this.points++;
         this.goLeft(i, column, color);
@@ -135,8 +120,8 @@ class Marbles {
     for (let i = column - 1; i >= 0; i--) {
       if (this.marblesColorsArray[row][i] == color) {
         console.log("Index " + i + " " + column + " w lewo zgadza się.");
-        this.removeMarbleFromScene(this.collidableMarblesList2D[row][i]);
-        this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
+        this.removeMarbleFromScene(this.marblesMeshesArray[row][i]);
+        this.removeMarbleFromList1D(this.marblesMeshesArray[row][i]);
         this.removeMarbleFromList2D(row, i);
         this.points++;
         this.goUp(row, i, color);
@@ -151,8 +136,8 @@ class Marbles {
     for (let i = column + 1; i < 10; i++) {
       if (this.marblesColorsArray[row][i] == color) {
         console.log("Index " + i + " " + column + " w prawo zgadza się.");
-        this.removeMarbleFromScene(this.collidableMarblesList2D[row][i]);
-        this.removeMarbleFromList1D(this.collidableMarblesList2D[row][i]);
+        this.removeMarbleFromScene(this.marblesMeshesArray[row][i]);
+        this.removeMarbleFromList1D(this.marblesMeshesArray[row][i]);
         this.removeMarbleFromList2D(row, i);
         this.points++;
         this.goUp(row, i, color);
@@ -169,30 +154,30 @@ class Marbles {
   }
 
   removeMarbleFromList1D(marble) {
-    for (let i = 0; i < this.collidableMarblesList1D.length; i++) {
-      if (this.collidableMarblesList1D[i] == marble) {
-        this.collidableMarblesList1D.splice(i, 1);
+    for (let i = 0; i < game.collidableElementsArray.length; i++) {
+      if (game.collidableElementsArray[i] == marble) {
+        game.collidableElementsArray.splice(i, 1);
       }
     }
   }
 
   removeMarbleFromList2D(row, column) {
     //usuwanie z tablicy meshów i kolorów
-    this.collidableMarblesList2D[row][column] = null;
+    this.marblesMeshesArray[row][column] = null;
     this.marblesColorsArray[row][column] = null;
     var rowIsEmpty = true;
     for (let i = 0; i < 10; i++) {
-      if (this.collidableMarblesList2D[row][i] != null) {
+      if (this.marblesMeshesArray[row][i] != null) {
         rowIsEmpty = false;
         break;
       }
     }
     if (rowIsEmpty) {
       console.log("Pusty rząd.");
-      this.collidableMarblesList2D.splice(row, 1);
+      this.marblesMeshesArray.splice(row, 1);
       this.marblesColorsArray.splice(row, i);
     }
-    // console.log("Tablica meshy", this.collidableMarblesList2D);
+    // console.log("Tablica meshy", this.marblesMeshesArray);
     // console.log("Tablica kolorów", this.marblesColorsArray);
   }
 }

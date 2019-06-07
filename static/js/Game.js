@@ -4,8 +4,12 @@ class Game {
     this.camera = null;
     this.renderer = null;
     this.marbleForShooting = null;
-    this.moving = false;
     this.strikedMarble = null;
+    this.directionArrow = null;
+    this.directionVect = null;
+    this.mouseVector = null;
+    this.collidableElementsArray = [];
+    this.launched = false;
     this.initThree();
     this.shoot();
   }
@@ -103,11 +107,12 @@ class Game {
 
   animate() {
     requestAnimationFrame(this.animate.bind(this));
-    if (this.moving) {
+    if (this.launched) {
+      console.log(this.directionVect);
       this.marbleForShooting.translateOnAxis(this.directionVect, 80); // 5 - przewidywany speed
       this.marbleForShooting.position.y = 100;
       this.checkIfCollides(function() {
-        game.moving = false;
+        game.launched = false;
       });
     }
     this.renderer.render(this.scene, this.camera);
@@ -150,28 +155,60 @@ class Game {
     }
     var edges = new THREE.Mesh(singleGeometry, settings.edgeMaterial);
     edges.name = "wall";
+    this.collidableElementsArray.push(edges);
     this.scene.add(edges);
   }
 
   shoot() {
-    $(document).mousedown(function(event) {
-      game.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
-      game.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
-      game.raycaster.setFromCamera(game.mouseVector, game.camera);
-      var intersects = game.raycaster.intersectObjects(game.scene.children);
-      if (intersects.length > 0) {
-        console.log("Trafiono w ", intersects[0].object.name);
-        game.clickedVect = intersects[0].point;
-        // console.log("Wektor klikniętego punktu ", game.clickedVect);
-        game.directionVect = game.clickedVect
-          .clone()
-          .sub(game.marbleForShooting.position)
-          .normalize();
-        // console.log("Wektor kierunkowy ", game.directionVect);
-        //funkcja normalize() przelicza współrzędne x,y,z wektora na zakres 0-1
-        //jest to wymagane przez kolejne funkcje
-        game.moving = true;
+    $(document).mousemove(function(event) {
+      if (!game.launched) {
+        if (game.directionArrow != null)
+          //usuwanie strzałki
+          game.scene.remove(
+            game.scene.getObjectByName(game.directionArrow.name)
+          );
+        game.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
+        game.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
+        game.raycaster.setFromCamera(game.mouseVector, game.camera);
+        var intersects = game.raycaster.intersectObjects(game.scene.children);
+        if (intersects.length > 0) {
+          // console.log("Trafiono w ", intersects[0].object.name);
+          game.clickedVect = intersects[0].point;
+          // console.log("Wektor klikniętego punktu ", game.clickedVect);
+          game.directionVect = game.clickedVect
+            .clone()
+            .sub(game.marbleForShooting.position)
+            .normalize();
+
+          var matrix = new THREE.Matrix4();
+          matrix.extractRotation(game.marbleForShooting.matrix);
+
+          var marbleDirection = new THREE.Vector3(0, 0, 1);
+          marbleDirection.applyMatrix4(matrix);
+
+          // var marbleDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
+          //   game.marbleForShooting.quaternion
+          // );
+
+          var length = 1000;
+          var hex = 0xffff00;
+          game.directionArrow = new THREE.ArrowHelper(
+            game.directionVect,
+            marbleDirection,
+            length,
+            hex
+          );
+          game.directionArrow.name = "directionArrow";
+          game.directionArrow.position.set(0, 100, 900);
+          game.scene.add(game.directionArrow);
+        }
       }
+    });
+    $(document).mousedown(function(event) {
+      // console.log("Wektor kierunkowy ", game.directionVect);
+      //funkcja normalize() przelicza współrzędne x,y,z wektora na zakres 0-1
+      //jest to wymagane przez kolejne funkcje
+      game.launched = true;
     });
   }
 
@@ -189,19 +226,28 @@ class Game {
 
       ray.set(mainMarble.position, directionVector.clone().normalize());
 
-      var collisionResults = ray.intersectObjects(
-        marbles.collidableMarblesList1D
-      );
+      var collisionResults = ray.intersectObjects(game.collidableElementsArray);
       if (
         collisionResults.length > 0 &&
         collisionResults[0].distance < directionVector.length()
       ) {
         // a collision occurred... do something...
-        callback();
-        this.strikedMarble = collisionResults[0].object.name;
-        marbles.destroyMarbles(this.strikedMarble);
-        break;
-        //alert("Kolizja");
+        var strikedElement = collisionResults[0].object.name;
+        if (strikedElement.indexOf("marble") >= 0) {
+          this.strikedMarble = strikedElement;
+          marbles.destroyMarbles(this.strikedMarble);
+          this.reflection = false;
+          this.launched = false;
+          callback();
+          break;
+          //alert("Kolizja");
+        } else if (strikedElement == "wall") {
+          if (!this.reflection) {
+            this.reflection = true;
+            this.directionVect.x = -this.directionVect.x;
+            console.log("Ściana");
+          }
+        }
       }
     }
   }

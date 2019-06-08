@@ -8,6 +8,7 @@ class Game {
     this.directionArrow = null;
     this.directionVect = null;
     this.mouseVector = null;
+    this.lastWall = ''
     this.collidableElementsArray = [];
     this.launched = false;
     this.initThree();
@@ -54,7 +55,7 @@ class Game {
       this.camera,
       this.renderer.domElement
     );
-    orbitControl.addEventListener("change", function() {
+    orbitControl.addEventListener("change", function () {
       game.renderer.render(game.scene, game.camera);
     });
 
@@ -93,7 +94,7 @@ class Game {
 
   stats() {
     var script = document.createElement("script");
-    script.onload = function() {
+    script.onload = function () {
       var stats = new Stats();
       document.body.appendChild(stats.dom);
       requestAnimationFrame(function loop() {
@@ -111,7 +112,7 @@ class Game {
       console.log(this.directionVect);
       this.marbleForShooting.translateOnAxis(this.directionVect, 80); // 5 - przewidywany speed
       this.marbleForShooting.position.y = 100;
-      this.checkIfCollides(function() {
+      this.checkIfCollides(function () {
         game.launched = false;
       });
     }
@@ -119,7 +120,7 @@ class Game {
   }
 
   resizeWindow() {
-    $(window).on("resize", function() {
+    $(window).on("resize", function () {
       game.camera.aspect = window.innerWidth / window.innerHeight;
       game.camera.updateProjectionMatrix();
       game.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -127,40 +128,23 @@ class Game {
   }
 
   createEdges() {
-    var singleGeometry = new THREE.Geometry();
-    for (let i = 0; i < 4; i++) {
-      var edge = new THREE.Mesh(settings.edgeGeometry);
-      switch (i) {
-        case 0:
-          //edge.position.set(0, 100, 990);
-          break;
-        case 1:
-          //edge.position.set(0, 200, -1700);
-          //edge.updateMatrix();
-          //singleGeometry.merge(edge.geometry, edge.matrix);
-          break;
-        case 2:
-          edge.position.set(-1200, 200, 0);
-          edge.rotation.y = Math.PI / 2;
-          edge.updateMatrix();
-          singleGeometry.merge(edge.geometry, edge.matrix);
-          break;
-        case 3:
-          edge.position.set(1200, 200, 0);
-          edge.rotation.y = Math.PI / 2;
-          edge.updateMatrix();
-          singleGeometry.merge(edge.geometry, edge.matrix);
-          break;
-      }
-    }
-    var edges = new THREE.Mesh(singleGeometry, settings.edgeMaterial);
-    edges.name = "wall";
-    this.collidableElementsArray.push(edges);
-    this.scene.add(edges);
+    var edge1 = new THREE.Mesh(settings.edgeGeometry, settings.edgeMaterial);
+    edge1.position.set(-1200, 200, 0);
+    edge1.rotation.y = Math.PI / 2;
+    edge1.name = "wall1";
+    this.collidableElementsArray.push(edge1);
+    this.scene.add(edge1);
+
+    var edge2 = new THREE.Mesh(settings.edgeGeometry, settings.edgeMaterial);
+    edge2.position.set(1200, 200, 0);
+    edge2.rotation.y = Math.PI / 2;
+    edge2.name = "wall2";
+    this.collidableElementsArray.push(edge2);
+    this.scene.add(edge2);
   }
 
   shoot() {
-    $(document).mousemove(function(event) {
+    $(document).mousemove(function (event) {
       if (!game.launched) {
         if (game.directionArrow != null)
           //usuwanie strzałki
@@ -204,7 +188,7 @@ class Game {
         }
       }
     });
-    $(document).mousedown(function(event) {
+    $(document).mousedown(function (event) {
       // console.log("Wektor kierunkowy ", game.directionVect);
       //funkcja normalize() przelicza współrzędne x,y,z wektora na zakres 0-1
       //jest to wymagane przez kolejne funkcje
@@ -241,12 +225,11 @@ class Game {
           callback();
           break;
           //alert("Kolizja");
-        } else if (strikedElement == "wall") {
-          if (!this.reflection) {
-            this.reflection = true;
-            this.directionVect.x = -this.directionVect.x;
-            console.log("Ściana");
-          }
+        } else if ((strikedElement == "wall1" || strikedElement == "wall2") && this.lastWall != strikedElement) {
+          console.log("Ściana");
+          this.reflection = true;
+          this.directionVect.x = -this.directionVect.x;
+          this.lastWall = strikedElement;
         }
       }
     }

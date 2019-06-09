@@ -1,22 +1,22 @@
 class Marble extends THREE.Mesh {
-  constructor() {
+  constructor(x, y, z) {
     super();
-    this.geometry = new THREE.SphereGeometry(
-      100,
-      50,
-      50,
-      0,
-      Math.PI * 2,
-      0,
-      Math.PI * 2
-    );
+    this.geometry = settings.marbleGeometry
     this.material = new THREE.MeshLambertMaterial({});
     this.castShadow = true;
-    this.receiveShadow = true;
+    this.receiveShadow = false;
+    this.randomizeColor()
+    this.position.set(x, y, z)
     return this;
   }
 
-  set materialColor(color) {
-    this.material.color.setHex(color);
+  randomizeColor() {
+    var color = settings.colors[Math.floor(Math.random() * 3)]
+    this.material.color.setHex(color)
   }
+
+  getColor() {
+    return this.material.color.getHex()
+  }
+
 }

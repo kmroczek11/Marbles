@@ -11,6 +11,8 @@ class Game {
     this.lastWall = ''
     this.collidableElementsArray = [];
     this.launched = false;
+    this.frame = 0
+    this.shots = 0
     this.initThree();
     this.shoot();
   }
@@ -50,15 +52,6 @@ class Game {
     //this.scene.add(light);
     this.scene.add(new Light(0, 2500, 0, 5000));
 
-    //orbitControl
-    var orbitControl = new THREE.OrbitControls(
-      this.camera,
-      this.renderer.domElement
-    );
-    orbitControl.addEventListener("change", function () {
-      game.renderer.render(game.scene, game.camera);
-    });
-
     //stworzenie podłogi
     var platform = new THREE.Mesh(
       settings.platformGeometry,
@@ -71,7 +64,7 @@ class Game {
     this.scene.add(platform);
 
     //stworzenie kulki do strzelania
-    this.createMarbleForShooting();
+    this.resetMarbleForShooting();
 
     //stworzenie raycastera
     this.raycaster = new THREE.Raycaster(); // obiekt symulujący "rzucanie" promieni
@@ -80,16 +73,14 @@ class Game {
     this.animate();
     this.resizeWindow();
     this.createEdges();
+    this.stats()
   }
 
-  createMarbleForShooting() {
-    this.marbleForShooting = new Marble();
-    var randomIndex = Math.floor(Math.random() * 3 + 0);
-    this.marbleForShooting.materialColor = settings.colors[randomIndex];
-    this.marbleForShooting.position.set(0, 100, 900);
-    this.marbleForShooting.name = "marbleForShooting";
-    this.marbleForShooting.randomColor = randomIndex;
+  resetMarbleForShooting() {
+    this.marbleForShooting = new Marble(0, 100, 900);
+    //this.marbleForShooting.name = "marbleForShooting";
     this.scene.add(this.marbleForShooting);
+
   }
 
   stats() {
@@ -108,13 +99,11 @@ class Game {
 
   animate() {
     requestAnimationFrame(this.animate.bind(this));
+    this.frame++
     if (this.launched) {
-      console.log(this.directionVect);
-      this.marbleForShooting.translateOnAxis(this.directionVect, 80); // 5 - przewidywany speed
+      this.marbleForShooting.translateOnAxis(this.directionVect, 80);
       this.marbleForShooting.position.y = 100;
-      this.checkIfCollides(function () {
-        game.launched = false;
-      });
+      this.checkMarbleCollision()
     }
     this.renderer.render(this.scene, this.camera);
   }
@@ -128,19 +117,15 @@ class Game {
   }
 
   createEdges() {
-    var edge1 = new THREE.Mesh(settings.edgeGeometry, settings.edgeMaterial);
-    edge1.position.set(-1200, 200, 0);
-    edge1.rotation.y = Math.PI / 2;
-    edge1.name = "wall1";
-    this.collidableElementsArray.push(edge1);
-    this.scene.add(edge1);
+    this.edge1 = new THREE.Mesh(settings.edgeGeometry, settings.edgeMaterial);
+    this.edge1.position.set(-1200, 200, 0);
+    this.edge1.rotation.y = Math.PI / 2;
+    this.scene.add(this.edge1);
 
-    var edge2 = new THREE.Mesh(settings.edgeGeometry, settings.edgeMaterial);
-    edge2.position.set(1200, 200, 0);
-    edge2.rotation.y = Math.PI / 2;
-    edge2.name = "wall2";
-    this.collidableElementsArray.push(edge2);
-    this.scene.add(edge2);
+    this.edge2 = new THREE.Mesh(settings.edgeGeometry, settings.edgeMaterial);
+    this.edge2.position.set(1300, 200, 0);
+    this.edge2.rotation.y = Math.PI / 2;
+    this.scene.add(this.edge2);
   }
 
   shoot() {
@@ -151,87 +136,77 @@ class Game {
           game.scene.remove(
             game.scene.getObjectByName(game.directionArrow.name)
           );
-        game.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
-        game.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
-        game.raycaster.setFromCamera(game.mouseVector, game.camera);
-        var intersects = game.raycaster.intersectObjects(game.scene.children);
-        if (intersects.length > 0) {
-          // console.log("Trafiono w ", intersects[0].object.name);
-          game.clickedVect = intersects[0].point;
-          // console.log("Wektor klikniętego punktu ", game.clickedVect);
-          game.directionVect = game.clickedVect
-            .clone()
-            .sub(game.marbleForShooting.position)
-            .normalize();
+        game.updateDirectionVector()
+        var matrix = new THREE.Matrix4();
+        matrix.extractRotation(game.marbleForShooting.matrix);
 
-          var matrix = new THREE.Matrix4();
-          matrix.extractRotation(game.marbleForShooting.matrix);
+        var marbleDirection = new THREE.Vector3(0, 0, 1);
+        marbleDirection.applyMatrix4(matrix);
 
-          var marbleDirection = new THREE.Vector3(0, 0, 1);
-          marbleDirection.applyMatrix4(matrix);
-
-          // var marbleDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
-          //   game.marbleForShooting.quaternion
-          // );
-
-          var length = 1000;
-          var hex = 0xffff00;
-          game.directionArrow = new THREE.ArrowHelper(
-            game.directionVect,
-            marbleDirection,
-            length,
-            hex
-          );
-          game.directionArrow.name = "directionArrow";
-          game.directionArrow.position.set(0, 100, 900);
-          game.scene.add(game.directionArrow);
-        }
+        // var marbleDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
+        //   game.marbleForShooting.quaternion
+        // );
+        var length = 1000;
+        var hex = 0xffff00;
+        var dir = game.directionVect.clone()
+        dir.y = 0
+        game.directionArrow = new THREE.ArrowHelper(
+          dir,
+          marbleDirection,
+          length,
+          hex
+        );
+        game.directionArrow.name = "directionArrow";
+        game.directionArrow.position.set(0, 100, 900);
+        game.scene.add(game.directionArrow);
       }
     });
     $(document).mousedown(function (event) {
-      // console.log("Wektor kierunkowy ", game.directionVect);
-      //funkcja normalize() przelicza współrzędne x,y,z wektora na zakres 0-1
-      //jest to wymagane przez kolejne funkcje
+      if (!game.launched)
+        game.updateDirectionVector()
       game.launched = true;
     });
   }
 
-  checkIfCollides(callback) {
-    var mainMarble = this.marbleForShooting;
-    var ray = new THREE.Raycaster();
-    for (
-      var vertexIndex = 0;
-      vertexIndex < mainMarble.geometry.vertices.length;
-      vertexIndex++
-    ) {
-      var localVertex = mainMarble.geometry.vertices[vertexIndex].clone();
-      var globalVertex = localVertex.applyMatrix4(mainMarble.matrix);
-      var directionVector = globalVertex.sub(mainMarble.position);
-
-      ray.set(mainMarble.position, directionVector.clone().normalize());
-
-      var collisionResults = ray.intersectObjects(game.collidableElementsArray);
-      if (
-        collisionResults.length > 0 &&
-        collisionResults[0].distance < directionVector.length()
-      ) {
-        // a collision occurred... do something...
-        var strikedElement = collisionResults[0].object.name;
-        if (strikedElement.indexOf("marble") >= 0) {
-          this.strikedMarble = strikedElement;
-          marbles.destroyMarbles(this.strikedMarble);
-          this.reflection = false;
-          this.launched = false;
-          callback();
-          break;
-          //alert("Kolizja");
-        } else if ((strikedElement == "wall1" || strikedElement == "wall2") && this.lastWall != strikedElement) {
-          console.log("Ściana");
-          this.reflection = true;
-          this.directionVect.x = -this.directionVect.x;
-          this.lastWall = strikedElement;
-        }
-      }
+  updateDirectionVector() {
+    this.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
+    this.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
+    this.raycaster.setFromCamera(this.mouseVector, this.camera)
+    var intersects = game.raycaster.intersectObjects(this.scene.children);
+    if (intersects.length > 0) {
+      this.clickedVect = intersects[0].point;
+      this.directionVect = this.clickedVect
+        .clone()
+        .sub(this.marbleForShooting.position)
+        .normalize();
     }
+  }
+
+  checkMarbleCollision() {
+    var wallWidth = this.edge1.geometry.parameters.depth
+    if (this.marbleForShooting.position.x < this.edge1.position.x + wallWidth / 2
+      || this.marbleForShooting.position.x > this.edge2.position.x - wallWidth / 2)
+      this.onWallCollision()
+    var marbleWidth = this.marbleForShooting.geometry.parameters.radius
+    marbles.each(function (marble, row, col) {
+      if (game.marbleForShooting.position.distanceTo(marble.position) < marbleWidth * 2) {
+        marbles.handleCollision(game.marbleForShooting, marble, row, col)
+        game.onMarbleCollision()
+      }
+    })
+  }
+
+  onWallCollision() {
+    this.directionVect.x = -this.directionVect.x;
+  }
+
+  onMarbleCollision() {
+    this.shots++
+    this.launched = false
+
+    this.resetMarbleForShooting()
+    if (this.shots % 5 == 0)
+      marbles.addRow()
+
   }
 }

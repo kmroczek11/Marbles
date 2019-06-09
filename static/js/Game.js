@@ -8,11 +8,14 @@ class Game {
     this.directionArrow = null;
     this.directionVect = null;
     this.mouseVector = null;
-    this.lastWall = ''
+    this.lastWall = "";
     this.collidableElementsArray = [];
     this.launched = false;
-    this.frame = 0
-    this.shots = 0
+    this.frame = 0;
+    this.shots = 0;
+    this.itemsList = ["rocket"];
+    this.activeItems = [];
+    this.adding = null;
     this.initThree();
     this.shoot();
   }
@@ -36,9 +39,9 @@ class Game {
     $("#root").append(this.renderer.domElement);
 
     //osie
-    //var axes = new THREE.AxesHelper(1000);
-    //axes.position.set(0, 25, 0); //podniesienie osi, aby były widoczne
-    //this.scene.add(axes);
+    // var axes = new THREE.AxesHelper(1000);
+    // axes.position.set(0, 25, 0); //podniesienie osi, aby były widoczne
+    // this.scene.add(axes);
 
     this.camera.position.set(0, 1900, 1700);
     this.camera.lookAt(this.scene.position);
@@ -73,19 +76,19 @@ class Game {
     this.animate();
     this.resizeWindow();
     this.createEdges();
-    this.stats()
+    this.stats();
+    // this.addRandomElement();
   }
 
   resetMarbleForShooting() {
     this.marbleForShooting = new Marble(0, 100, 900);
     //this.marbleForShooting.name = "marbleForShooting";
     this.scene.add(this.marbleForShooting);
-
   }
 
   stats() {
     var script = document.createElement("script");
-    script.onload = function () {
+    script.onload = function() {
       var stats = new Stats();
       document.body.appendChild(stats.dom);
       requestAnimationFrame(function loop() {
@@ -99,17 +102,20 @@ class Game {
 
   animate() {
     requestAnimationFrame(this.animate.bind(this));
-    this.frame++
+    this.frame++;
     if (this.launched) {
       this.marbleForShooting.translateOnAxis(this.directionVect, 80);
       this.marbleForShooting.position.y = 100;
-      this.checkMarbleCollision()
+      this.checkMarbleCollision();
+    }
+    for (let i = 0; i < this.activeItems.length; i++) {
+      this.activeItems[i].rotation.z += 0.1;
     }
     this.renderer.render(this.scene, this.camera);
   }
 
   resizeWindow() {
-    $(window).on("resize", function () {
+    $(window).on("resize", function() {
       game.camera.aspect = window.innerWidth / window.innerHeight;
       game.camera.updateProjectionMatrix();
       game.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -129,14 +135,14 @@ class Game {
   }
 
   shoot() {
-    $(document).mousemove(function (event) {
+    $(document).mousemove(function(event) {
       if (!game.launched) {
         if (game.directionArrow != null)
           //usuwanie strzałki
           game.scene.remove(
             game.scene.getObjectByName(game.directionArrow.name)
           );
-        game.updateDirectionVector()
+        game.updateDirectionVector();
         var matrix = new THREE.Matrix4();
         matrix.extractRotation(game.marbleForShooting.matrix);
 
@@ -148,8 +154,8 @@ class Game {
         // );
         var length = 1000;
         var hex = 0xffff00;
-        var dir = game.directionVect.clone()
-        dir.y = 0
+        var dir = game.directionVect.clone();
+        dir.y = 0;
         game.directionArrow = new THREE.ArrowHelper(
           dir,
           marbleDirection,
@@ -161,9 +167,8 @@ class Game {
         game.scene.add(game.directionArrow);
       }
     });
-    $(document).mousedown(function (event) {
-      if (!game.launched)
-        game.updateDirectionVector()
+    $(document).mousedown(function(event) {
+      if (!game.launched) game.updateDirectionVector();
       game.launched = true;
     });
   }
@@ -171,7 +176,7 @@ class Game {
   updateDirectionVector() {
     this.mouseVector.x = (event.clientX / $(window).width()) * 2 - 1;
     this.mouseVector.y = -(event.clientY / $(window).height()) * 2 + 1;
-    this.raycaster.setFromCamera(this.mouseVector, this.camera)
+    this.raycaster.setFromCamera(this.mouseVector, this.camera);
     var intersects = game.raycaster.intersectObjects(this.scene.children);
     if (intersects.length > 0) {
       this.clickedVect = intersects[0].point;
@@ -183,17 +188,23 @@ class Game {
   }
 
   checkMarbleCollision() {
-    var wallWidth = this.edge1.geometry.parameters.depth
-    if (this.marbleForShooting.position.x < this.edge1.position.x + wallWidth / 2
-      || this.marbleForShooting.position.x > this.edge2.position.x - wallWidth / 2)
-      this.onWallCollision()
-    var marbleWidth = this.marbleForShooting.geometry.parameters.radius
-    marbles.each(function (marble, row, col) {
-      if (game.marbleForShooting.position.distanceTo(marble.position) < marbleWidth * 2) {
-        marbles.handleCollision(game.marbleForShooting, marble, row, col)
-        game.onMarbleCollision()
+    var wallWidth = this.edge1.geometry.parameters.depth;
+    if (
+      this.marbleForShooting.position.x <
+        this.edge1.position.x + wallWidth / 2 ||
+      this.marbleForShooting.position.x > this.edge2.position.x - wallWidth / 2
+    )
+      this.onWallCollision();
+    var marbleWidth = this.marbleForShooting.geometry.parameters.radius;
+    marbles.each(function(marble, row, col) {
+      if (
+        game.marbleForShooting.position.distanceTo(marble.position) <
+        marbleWidth * 2
+      ) {
+        marbles.handleCollision(game.marbleForShooting, marble, row, col);
+        game.onMarbleCollision();
       }
-    })
+    });
   }
 
   onWallCollision() {
@@ -201,12 +212,30 @@ class Game {
   }
 
   onMarbleCollision() {
-    this.shots++
-    this.launched = false
+    this.shots++;
+    this.launched = false;
 
-    this.resetMarbleForShooting()
-    if (this.shots % 5 == 0)
-      marbles.addRow()
+    this.resetMarbleForShooting();
+    if (this.shots % 5 == 0) marbles.addRow();
+  }
 
+  addRandomElement() {
+    this.adding = setInterval(function() {
+      var item =
+        game.itemsList[Math.floor(Math.random() * game.itemsList.length)];
+      console.log("Wylosowany przedmiot", item);
+      var x = Math.floor(Math.random() * 2000) - 1000;
+      var z =
+        Math.floor(Math.random() * (-2000 + marbles.marbles.length * 200)) +
+        700;
+      console.log(x, z);
+
+      switch (item) {
+        case "rocket":
+          var rocket = new Rocket(x, z);
+          game.activeItems.push(rocket);
+          game.scene.add(rocket);
+      }
+    }, 5000);
   }
 }

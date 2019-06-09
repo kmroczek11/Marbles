@@ -1,7 +1,6 @@
 var game;
 var marbles;
-$(document).ready(function() {
+$(document).ready(function () {
   game = new Game();
-  marbles = new Marbles(6);
-  game.stats();
+  marbles = new Marbles();
 });

@@ -1,183 +1,141 @@
 class Marbles {
-  constructor(rows) {
-    this.marblesMeshesArray = [];
-    this.marblesColorsArray = [];
-    this.rows = rows;
-    this.points = 0;
-    this.createMarbles(rows);
-  }
-
-  create2DArray(rows) {
-    var arr = [];
-    for (var i = 0; i < rows; i++) {
-      arr[i] = [];
+    constructor() {
+        this.marbles = []
+        this.even = 1
+        this.createField()
     }
-    return arr;
-  }
 
-  createMarbles(rows) {
-    this.marblesColorsArray = this.create2DArray(rows);
-    this.marblesMeshesArray = this.create2DArray(rows);
-    var x = -1000;
-    var y = 100;
-    var z = -2000;
-    for (let i = 0; i < rows; i++) {
-      if (i % 2 == 1) x += 125;
-      for (let j = 0; j < 10; j++) {
-        var marble = new Marble();
-        marble.position.set(x, y, z);
-        var randomIndex = Math.floor(Math.random() * 3 + 0);
-        marble.materialColor = settings.colors[randomIndex];
-        marble.name = "marble_" + i + " " + j;
-        this.marblesMeshesArray[i][j] = marble;
-        this.marblesColorsArray[i][j] = randomIndex;
-        game.collidableElementsArray.push(marble);
-        game.scene.add(marble);
-        x += 220;
-      }
-      x = -1000;
-      z += 300;
-    }
-  }
-
-  destroyMarbles(strikedMarble) {
-    var data = this.getRowAndColumn(strikedMarble);
-    // console.log("Wiersz:", row, "Kolumna:", column);
-    var color = game.marbleForShooting.randomColor;
-
-    this.checkPoints(data[0], data[1], color);
-  }
-
-  getRowAndColumn(strikedMarble) {
-    var id = strikedMarble.substring(
-      strikedMarble.indexOf("_") + 1,
-      strikedMarble.length
-    );
-    var row = parseInt(id.split(" ")[0]);
-    var column = parseInt(id.split(" ")[1]);
-    return [row, column];
-  }
-
-  checkPoints(row, column, color) {
-    console.log(row, column, color);
-    this.goUp(row, column, color);
-    console.log("Punkty", this.points);
-    if (this.points > 2) {
-      game.marbleForShooting.position.set(0, 100, 900);
-    } else {
-      //manipulacja kulką, którą strzelaliśmy, dodanie jej do rzędu kulek
-      game.marbleForShooting.position.z += 100;
-      var data = this.getRowAndColumn(game.strikedMarble);
-      var row = data[0] + 1;
-      var column = data[1];
-      game.marbleForShooting.name = "marble_" + row + " " + column;
-      console.log("Id nowej kulki", game.marbleForShooting.name);
-      game.collidableElementsArray.push(game.marbleForShooting);
-      if (this.marblesMeshesArray[row] == undefined) {
-        console.log("Stworzenie pustego rzędu.");
-        this.marblesMeshesArray[row] = [];
-        this.marblesColorsArray[row] = [];
-        for (let i = 0; i < 10; i++) {
-          this.marblesMeshesArray[row][i] = null;
-          this.marblesColorsArray[row][i] = null;
+    createField() {
+        var x = -1000
+        var y = 100
+        var z = -2000
+        for (var i = 0; i < 4; i++) {
+            this.marbles[i] = []
+            if (i % 2 == 1) x += 110
+            for (var j = 0; j < 10; j++) {
+                this.marbles[i][j] = this.createMarble(x, y, z)
+                x += 220
+            }
+            x = -1000
+            z += 300
         }
-        this.marblesMeshesArray[row][column] = game.marbleForShooting;
-        this.marblesColorsArray[row][column] =
-          game.marbleForShooting.randomColor;
-        // console.log("Tablica meshy", this.marblesMeshesArray);
-        // console.log("Tablica kolorów", this.marblesColorsArray);
-      } else {
-        this.marblesMeshesArray[row][column] = game.marbleForShooting;
-        this.marblesColorsArray[row][column] =
-          game.marbleForShooting.randomColor;
-        // console.log("Tablica meshy", this.marblesMeshesArray);
-        // console.log("Tablica kolorów", this.marblesColorsArray);
-      }
-      game.createMarbleForShooting();
     }
 
-    this.points = 0;
-  }
-
-  goUp(row, column, color) {
-    for (let i = row; i >= 0; i--) {
-      if (this.marblesColorsArray[i][column] == color) {
-        console.log("Index " + i + " " + column + " w górę zgadza się.");
-        this.removeMarbleFromScene(this.marblesMeshesArray[i][column]);
-        this.removeMarbleFromList1D(this.marblesMeshesArray[row][i]);
-        this.removeMarbleFromList2D(i, column);
-        this.points++;
-        this.goLeft(i, column, color);
-        this.goRight(i, column, color);
-      } else {
-        break;
-      }
+    createMarble(x, y, z) {
+        var marble = new Marble(x, y, z)
+        game.scene.add(marble)
+        return marble
     }
-  }
 
-  //w lewy bok
-  goLeft(row, column, color) {
-    for (let i = column - 1; i >= 0; i--) {
-      if (this.marblesColorsArray[row][i] == color) {
-        console.log("Index " + i + " " + column + " w lewo zgadza się.");
-        this.removeMarbleFromScene(this.marblesMeshesArray[row][i]);
-        this.removeMarbleFromList1D(this.marblesMeshesArray[row][i]);
-        this.removeMarbleFromList2D(row, i);
-        this.points++;
-        this.goUp(row, i, color);
-      } else {
-        break;
-      }
+    each(callback) {
+        for (var i = 0; i < this.marbles.length; i++)
+            for (var j = 0; j < this.marbles[i].length; j++)
+                if (this.marbles[i][j])
+                    callback(this.marbles[i][j], i, j)
     }
-  }
 
-  //w prawy bok
-  goRight(row, column, color) {
-    for (let i = column + 1; i < 10; i++) {
-      if (this.marblesColorsArray[row][i] == color) {
-        console.log("Index " + i + " " + column + " w prawo zgadza się.");
-        this.removeMarbleFromScene(this.marblesMeshesArray[row][i]);
-        this.removeMarbleFromList1D(this.marblesMeshesArray[row][i]);
-        this.removeMarbleFromList2D(row, i);
-        this.points++;
-        this.goUp(row, i, color);
-      } else {
-        break;
-      }
-    }
-  }
+    handleCollision(shootingMarble, collided, row, col) {
+        this.marbles.push([])
+        var firstHalf = shootingMarble.position.x + 20 < collided.position.x
+        var backHit = shootingMarble.position.z - 100 < collided.position.z
+        row = backHit ? row : row + 1
+        var uneven = row % 2 == this.even
+        col = firstHalf ? (backHit ? col - 1 : col) : col + 1
+        if (uneven && !backHit)
+            col--
+        if (this.marbles[row][col]) {
+            row--
+            col = firstHalf ? col - 1 : col + 1
+        }
+        col = this.restrictNumber(col, 0, 9, function () { if (backHit) row++ })
 
-  removeMarbleFromScene(marble) {
-    console.log("Usuwanie " + marble.name);
-    var selectedObject = game.scene.getObjectByName(marble.name);
-    game.scene.remove(selectedObject);
-  }
+        this.appendMarble(shootingMarble, row, col)
+        this.destroyMarbles(row, col, shootingMarble.getColor())
+    }
 
-  removeMarbleFromList1D(marble) {
-    for (let i = 0; i < game.collidableElementsArray.length; i++) {
-      if (game.collidableElementsArray[i] == marble) {
-        game.collidableElementsArray.splice(i, 1);
-      }
+    appendMarble(marble, row, col) {
+        var uneven = row % 2 == this.even
+        marble.position.x = -1000 + 220 * col + (uneven ? 110 : 0)
+        marble.position.z = -2000 + 300 * row
+        this.marbles[row][col] = marble
     }
-  }
 
-  removeMarbleFromList2D(row, column) {
-    //usuwanie z tablicy meshów i kolorów
-    this.marblesMeshesArray[row][column] = null;
-    this.marblesColorsArray[row][column] = null;
-    var rowIsEmpty = true;
-    for (let i = 0; i < 10; i++) {
-      if (this.marblesMeshesArray[row][i] != null) {
-        rowIsEmpty = false;
-        break;
-      }
+    restrictNumber(num, min, max, callback) {
+        if (num < min) {
+            num = min
+            callback()
+        }
+        if (num > max) {
+            num = max
+            callback()
+        }
+        return num
     }
-    if (rowIsEmpty) {
-      console.log("Pusty rząd.");
-      this.marblesMeshesArray.splice(row, 1);
-      this.marblesColorsArray.splice(row, i);
+
+    addRow() {
+        if (this.even == 0)
+            this.even = 1
+        else
+            this.even = 0
+
+        this.each(function (marble) {
+            marble.position.z += 300
+        })
+        this.marbles.unshift([])
+
+        var x = -1000
+        var y = 100
+        var z = -2000
+        if (!this.even)
+            x += 110
+        for (var j = 0; j < 10; j++) {
+            this.marbles[0][j] = this.createMarble(x, y, z)
+            x += 220
+        }
     }
-    // console.log("Tablica meshy", this.marblesMeshesArray);
-    // console.log("Tablica kolorów", this.marblesColorsArray);
-  }
+
+    contains(array, element) {
+        for (var i = 0; i < array.length; i++)
+            if (array[i] == element)
+                return true
+        return false
+    }
+
+    destroyMarbles(row, col, color) {
+        var that = this
+        var result = [this.marbles[row][col]]
+        var temp = []
+        var cont = true
+
+        while (cont) {
+            cont = false
+            for (var i = 0; i < result.length; i++)
+                this.each(function (marble) {
+                    if (result[i].position.distanceTo(marble.position) < 400 && marble.getColor() == color
+                        && !that.contains(result, marble)) {
+                        cont = true
+                        temp.push(marble)
+                    }
+                })
+
+            result.push(...temp)
+            temp = []
+        }
+
+        if (result.length > 2)
+            for (var i = 0; i < result.length; i++)
+                this.removeMarble(result[i])
+    }
+
+    removeMarble(toRemove) {
+        var that = this
+        game.scene.remove(toRemove)
+        this.each(function (marble, i, j) {
+            if (marble == toRemove) {
+                that.marbles[i][j] = null
+                return
+            }
+
+        })
+    }
 }

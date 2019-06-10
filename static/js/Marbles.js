@@ -2,6 +2,7 @@ class Marbles {
   constructor() {
     this.marbles = [];
     this.even = 1;
+    this.points = 0;
     this.createField();
   }
 
@@ -120,8 +121,14 @@ class Marbles {
       temp = [];
     }
 
-    if (result.length > 2)
-      for (var i = 0; i < result.length; i++) this.removeMarble(result[i]);
+    if (result.length > 2) {
+      for (var i = 0; i < result.length; i++) {
+        this.removeMarble(result[i]);
+        this.points += 100;
+      }
+      this.points -= 100;
+      $("#points").html(this.points + " points");
+    }
   }
 
   removeMarble(toRemove) {

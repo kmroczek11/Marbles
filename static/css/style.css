@@ -1,0 +1,23 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+  margin: 0;
+}
+
+@font-face {
+  font-family: "Bubblegum";
+  src: url("../fonts/Bubblegum.ttf");
+}
+
+#points {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 40px;
+  color: white;
+  font-family: "Bubblegum";
+}

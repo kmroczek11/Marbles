@@ -76,6 +76,7 @@ class Ui {
           $(".overlay").remove();
           $(".statusBar").remove();
           game.canPlay = true;
+          items = new Items();
           clearInterval(wait);
         } else {
           $(".wait").css("display", "flex");

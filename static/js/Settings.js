@@ -30,4 +30,6 @@ var settings = {
   startingX: -1000,
   startingZ: -1900,
   finishZ: 700,
+  items: ["../models/rocket.stl", "../models/ice.stl"],
+  itemsScale: [1.5, 100]
 };

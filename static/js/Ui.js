@@ -88,21 +88,26 @@ class Ui {
   }
 
   refreshLeaderboard(results) {
-    console.log("Wyniki", results);
-    $("#leaderboard").html(" ");
+    console.log("Tworzę leaderboard");
+    $("#leaderboard").html(
+      "<tr>\
+        <th>Nickname</th>\
+        <th>Punkty</th>\
+    </tr>"
+    );
     for (let i = 0; i < results.length; i++) {
       var tr = $("<tr>");
-      for (let j = 0; j < results[i].length; i++) {
-        if (j == 1) {
-          var td = $("<td>");
-          td.html(results[i].nickname);
-          tr.append(td);
-        } else if (j == 2) {
-          var td = $("<td>");
-          td.html(results[i].points);
-          tr.append(td);
-        }
+      console.log(results[i]);
+      var nickname = $("<td>").html(results[i].nickname);
+      if (results[i].nickname == ui.login) {
+        nickname.css({ color: "red" });
       }
+      tr.append(nickname);
+      var points = $("<td>").html(results[i].points);
+      if (results[i].nickname == ui.login) {
+        points.css({ color: "red" });
+      }
+      tr.append(points);
       $("#leaderboard").append(tr);
     }
   }

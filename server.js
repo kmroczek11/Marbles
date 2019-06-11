@@ -3,7 +3,7 @@ var app = express();
 var http = require("http").createServer(app);
 var socketio = require("socket.io")(http);
 var mongoClient = require("mongodb").MongoClient;
-var ObjectID = require("mongodb").ObjectID;
+var opers = require("./modules/Operations.js");
 
 app.use(express.static("static"));
 
@@ -11,10 +11,10 @@ http.listen(3000, function() {
   console.log("Listening on 3000...");
 });
 
-var _db;
+var client;
 
 mongoClient.connect("mongodb://localhost/admin", function(err, db) {
-  _db = db;
+  client = db;
   db.admin().listDatabases(function(err, dbs) {
     if (err) console.log(err);
     else {
@@ -90,50 +90,39 @@ socketio.on("connection", function(client) {
   });
 
   client.on("updateRanking", function(data) {
-    var coll;
-    var add = true;
-    mongoClient.connect(
-      "mongodb://localhost/leaderboard",
-      function(err, db) {
-        if (err) {
-          throw err;
-        } else {
-          db.collection("results", function(err, collection) {
-            if (err) {
-              throw err;
-            } else {
-              collection.find({}, function(err, results) {
-                results.each(function(err, res) {
-                  console.log("Wiersz", res);
-                  if (res != null) {
-                    console.log("Kolekcja nie jest pusta");
-                    if (res.nickname == data.nickname) {
-                      res.points = data.points;
-                      add = false;
-                    }
-                  }
-                });
-              });
-            }
-
-            if (add) {
-              var collection = db.collection("results");
-              var data = { nickname: data.nickname, points: data.points };
-              collection.insert(data, function(err, result) {
-                console.log("Dodano wynik");
-              });
-            }
-          });
-
-          db.collection("results", function(err, collection) {
-            collection.find({}, function(err, result) {
-              coll = result;
-            });
-          });
-        }
-      }.bind(data)
-    );
-
-    socketio.sockets.emit("updateRanking", coll);
+    check_rows(data);
   });
 });
+
+function check_rows(data) {
+  var dbo = client.db("leaderboard");
+  console.log(data.nickname);
+  opers.CheckRows(dbo, "results", data.nickname, data.points, function(exists) {
+    if (!exists) {
+      console.log("Nie ma takiego usera");
+      add_row(data);
+    } else {
+      console.log("Jest taki user");
+      opers.ShowRows(dbo, "results", function(rows) {
+        rows.sort(function(b, a) {
+          return parseFloat(a.points) - parseFloat(b.points);
+        });
+        socketio.sockets.emit("updateRanking", rows);
+      });
+    }
+  });
+}
+
+function add_row(data) {
+  var col = client.db("leaderboard").collection("results");
+  opers.CreateRow(col, data, function(added) {
+    var dbo = client.db("leaderboard");
+    console.log("Dodano ", added);
+    opers.ShowRows(dbo, "results", function(rows) {
+      rows.sort(function(b, a) {
+        return parseFloat(a.points) - parseFloat(b.points);
+      });
+      socketio.sockets.emit("updateRanking", rows);
+    });
+  });
+}

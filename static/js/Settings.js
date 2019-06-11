@@ -2,7 +2,7 @@ var settings = {
   platformGeometry: new THREE.PlaneGeometry(10000, 10000, 50, 50),
 
   platformMaterial: new THREE.MeshToonMaterial({
-    color: 0xbbaaff,
+    color: 0x9988ee,
     side: THREE.DoubleSide
   }),
 
@@ -13,7 +13,9 @@ var settings = {
     side: THREE.DoubleSide
   }),
 
-  colors: [0xff0000, 0x00ff00, 0x0000ff],
+  colors: [0xff00ff, 0xffff00, 0x00ffff, 0x45f442],
+
+  dummyMarbleColor: 0x00000f,
 
   marbleGeometry: new THREE.SphereGeometry(
     100,
@@ -23,5 +25,9 @@ var settings = {
     Math.PI * 2,
     0,
     Math.PI * 2
-  )
+  ),
+
+  startingX: -1000,
+  startingZ: -1900,
+  finishZ: 700,
 };

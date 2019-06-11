@@ -11,12 +11,16 @@ class Marble extends THREE.Mesh {
   }
 
   randomizeColor() {
-    var color = settings.colors[Math.floor(Math.random() * 3)]
+    var color = settings.colors[Math.floor(Math.random() * settings.colors.length)]
     this.material.color.setHex(color)
   }
 
   getColor() {
     return this.material.color.getHex()
+  }
+
+  setColor(color) {
+    this.material.color.setHex(color)
   }
 
 }

@@ -20,6 +20,7 @@ class Game {
     this.shoot();
     this.over = false;
     this.canPlay = false;
+    this.speed = 20
   }
 
   initThree() {
@@ -81,7 +82,6 @@ class Game {
     this.resizeWindow();
     this.createEdges();
     this.stats();
-    // this.addRandomElement();
   }
 
   resetMarbleForShooting() {
@@ -108,13 +108,11 @@ class Game {
     requestAnimationFrame(this.animate.bind(this));
     this.frame++;
     if (this.launched) {
-      this.marbleForShooting.translateOnAxis(this.directionVect, 80);
+      this.marbleForShooting.translateOnAxis(this.directionVect, this.speed);
       this.marbleForShooting.position.y = 100;
       this.checkMarbleCollision();
     }
-    for (let i = 0; i < this.activeItems.length; i++) {
-      this.activeItems[i].rotation.z += 0.1;
-    }
+    items.animate()
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -229,6 +227,14 @@ class Game {
         game.onMarbleCollision();
       }
     });
+    items.each(function (item, i) {
+      if (
+        game.marbleForShooting.position.distanceTo(item.position) <
+        marbleWidth * 2
+      ) {
+        items.handleCollision(item, i)
+      }
+    })
   }
 
   onWallCollision() {
@@ -264,25 +270,5 @@ class Game {
     setInterval(function () {
       marbles.addRow();
     }, 500);
-  }
-
-  addRandomElement() {
-    this.adding = setInterval(function () {
-      var item =
-        game.itemsList[Math.floor(Math.random() * game.itemsList.length)];
-      console.log("Wylosowany przedmiot", item);
-      var x = Math.floor(Math.random() * 2000) - 1000;
-      var z =
-        Math.floor(Math.random() * (-2000 + marbles.marbles.length * 200)) +
-        700;
-      console.log(x, z);
-
-      switch (item) {
-        case "rocket":
-          var rocket = new Rocket(x, z);
-          game.activeItems.push(rocket);
-          game.scene.add(rocket);
-      }
-    }, 5000);
   }
 }

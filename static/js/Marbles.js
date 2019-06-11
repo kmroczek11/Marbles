@@ -47,7 +47,7 @@ class Marbles {
       row--;
       col = firstHalf ? col - 1 : col + 1;
     }
-    col = this.restrictNumber(col, 0, 9, function() {
+    col = this.restrictNumber(col, 0, 9, function () {
       if (backHit) row++;
     });
 
@@ -78,7 +78,7 @@ class Marbles {
     if (this.even == 0) this.even = 1;
     else this.even = 0;
 
-    this.each(function(marble) {
+    this.each(function (marble) {
       marble.position.z += 300;
     });
     this.marbles.unshift([]);
@@ -111,7 +111,7 @@ class Marbles {
     while (cont) {
       cont = false;
       for (var i = 0; i < result.length; i++)
-        this.each(function(marble) {
+        this.each(function (marble) {
           if (
             result[i].position.distanceTo(marble.position) < 400 &&
             marble.getColor() == color &&
@@ -139,7 +139,7 @@ class Marbles {
   removeMarble(toRemove) {
     var that = this;
     game.scene.remove(toRemove);
-    this.each(function(marble, i, j) {
+    this.each(function (marble, i, j) {
       if (marble == toRemove) {
         that.marbles[i][j] = null;
         that.points += 100;

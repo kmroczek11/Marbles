@@ -15,8 +15,7 @@ class Marbles {
       if (i % 2 == 1) x += 110;
       for (var j = 0; j < 10; j++) {
         this.marbles[i][j] = this.createMarble(x, y, z);
-        if (i == 0)
-          this.marbles[i][j].setColor(settings.dummyMarbleColor)
+        if (i == 0) this.marbles[i][j].setColor(settings.dummyMarbleColor);
         x += 220;
       }
       x = settings.startingX;
@@ -48,7 +47,7 @@ class Marbles {
       row--;
       col = firstHalf ? col - 1 : col + 1;
     }
-    col = this.restrictNumber(col, 0, 9, function () {
+    col = this.restrictNumber(col, 0, 9, function() {
       if (backHit) row++;
     });
 
@@ -79,7 +78,7 @@ class Marbles {
     if (this.even == 0) this.even = 1;
     else this.even = 0;
 
-    this.each(function (marble) {
+    this.each(function(marble) {
       marble.position.z += 300;
     });
     this.marbles.unshift([]);
@@ -90,12 +89,11 @@ class Marbles {
     if (!this.even) x += 110;
     for (var j = 0; j < 10; j++) {
       this.marbles[0][j] = this.createMarble(x, y, z);
-      this.marbles[0][j].setColor(settings.dummyMarbleColor)
+      this.marbles[0][j].setColor(settings.dummyMarbleColor);
       x += 220;
     }
     for (var j = 0; j < 10; j++) {
-      if (this.marbles[1][j])
-        this.marbles[1][j].randomizeColor()
+      if (this.marbles[1][j]) this.marbles[1][j].randomizeColor();
     }
   }
 
@@ -113,7 +111,7 @@ class Marbles {
     while (cont) {
       cont = false;
       for (var i = 0; i < result.length; i++)
-        this.each(function (marble) {
+        this.each(function(marble) {
           if (
             result[i].position.distanceTo(marble.position) < 400 &&
             marble.getColor() == color &&
@@ -134,13 +132,14 @@ class Marbles {
       }
       this.points -= 100;
       $("#points").html(this.points + " points");
+      net.updateRanking(ui.login, this.points);
     }
   }
 
   removeMarble(toRemove) {
     var that = this;
     game.scene.remove(toRemove);
-    this.each(function (marble, i, j) {
+    this.each(function(marble, i, j) {
       if (marble == toRemove) {
         that.marbles[i][j] = null;
         that.points += 100;

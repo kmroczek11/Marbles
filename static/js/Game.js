@@ -18,7 +18,8 @@ class Game {
     this.adding = null;
     this.initThree();
     this.shoot();
-    this.over = false
+    this.over = false;
+    this.canPlay = false;
   }
 
   initThree() {
@@ -47,7 +48,7 @@ class Game {
 
     this.camera.position.set(0, 2000, 1900);
     this.camera.lookAt(this.scene.position);
-    this.camera.position.x = 40
+    this.camera.position.x = 40;
 
     //światła
     var ambient = new THREE.AmbientLight(0x888888);
@@ -91,7 +92,7 @@ class Game {
 
   stats() {
     var script = document.createElement("script");
-    script.onload = function () {
+    script.onload = function() {
       var stats = new Stats();
       document.body.appendChild(stats.dom);
       requestAnimationFrame(function loop() {
@@ -118,7 +119,7 @@ class Game {
   }
 
   resizeWindow() {
-    $(window).on("resize", function () {
+    $(window).on("resize", function() {
       game.camera.aspect = window.innerWidth / window.innerHeight;
       game.camera.updateProjectionMatrix();
       game.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -136,51 +137,61 @@ class Game {
     this.edge2.rotation.y = Math.PI / 2;
     this.scene.add(this.edge2);
 
-    this.edge3 = new THREE.Mesh(new THREE.BoxGeometry(2500, 300, 200), settings.edgeMaterial);
+    this.edge3 = new THREE.Mesh(
+      new THREE.BoxGeometry(2500, 300, 200),
+      settings.edgeMaterial
+    );
     this.edge3.position.set(40, 200, -1800);
     this.scene.add(this.edge3);
 
-    this.edge4 = new THREE.Mesh(new THREE.BoxGeometry(2000, 20, 50), settings.edgeMaterial);
+    this.edge4 = new THREE.Mesh(
+      new THREE.BoxGeometry(2000, 20, 50),
+      settings.edgeMaterial
+    );
     this.edge4.position.set(40, 100, settings.finishZ);
     this.scene.add(this.edge4);
   }
 
   shoot() {
-    $(document).mousemove(function (event) {
-      if (!game.launched && !game.over) {
-        if (game.directionArrow != null)
-          //usuwanie strzałki
-          game.scene.remove(
-            game.scene.getObjectByName(game.directionArrow.name)
+    $(document).mousemove(function() {
+      if (game.canPlay) {
+        if (!game.launched && !game.over) {
+          if (game.directionArrow != null)
+            //usuwanie strzałki
+            game.scene.remove(
+              game.scene.getObjectByName(game.directionArrow.name)
+            );
+          game.updateDirectionVector();
+          var matrix = new THREE.Matrix4();
+          matrix.extractRotation(game.marbleForShooting.matrix);
+
+          var marbleDirection = new THREE.Vector3(0, 0, 1);
+          marbleDirection.applyMatrix4(matrix);
+
+          // var marbleDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
+          //   game.marbleForShooting.quaternion
+          // );
+          var length = 800;
+          var hex = 0xffff00;
+          var dir = game.directionVect.clone();
+          dir.y = 0;
+          game.directionArrow = new THREE.ArrowHelper(
+            dir,
+            marbleDirection,
+            length,
+            hex
           );
-        game.updateDirectionVector();
-        var matrix = new THREE.Matrix4();
-        matrix.extractRotation(game.marbleForShooting.matrix);
-
-        var marbleDirection = new THREE.Vector3(0, 0, 1);
-        marbleDirection.applyMatrix4(matrix);
-
-        // var marbleDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
-        //   game.marbleForShooting.quaternion
-        // );
-        var length = 800;
-        var hex = 0xffff00;
-        var dir = game.directionVect.clone();
-        dir.y = 0;
-        game.directionArrow = new THREE.ArrowHelper(
-          dir,
-          marbleDirection,
-          length,
-          hex
-        );
-        game.directionArrow.name = "directionArrow";
-        game.directionArrow.position.set(40, 100, 950);
-        game.scene.add(game.directionArrow);
+          game.directionArrow.name = "directionArrow";
+          game.directionArrow.position.set(40, 100, 950);
+          game.scene.add(game.directionArrow);
+        }
       }
     });
-    $(document).mousedown(function (event) {
-      if (!game.launched) game.updateDirectionVector();
-      game.launched = true;
+    $(document).mousedown(function() {
+      if (game.canPlay) {
+        if (!game.launched) game.updateDirectionVector();
+        game.launched = true;
+      }
     });
   }
 
@@ -196,20 +207,18 @@ class Game {
         .sub(this.marbleForShooting.position)
         .normalize();
     }
-    if (this.directionVect.z > -0.1)
-      this.directionVect.z = -0.1
+    if (this.directionVect.z > -0.1) this.directionVect.z = -0.1;
   }
 
   checkMarbleCollision() {
     var wallWidth = this.edge1.geometry.parameters.depth;
     if (
-      this.marbleForShooting.position.x <
-      this.edge1.position.x + wallWidth ||
+      this.marbleForShooting.position.x < this.edge1.position.x + wallWidth ||
       this.marbleForShooting.position.x > this.edge2.position.x - wallWidth
     )
       this.onWallCollision();
     var marbleWidth = this.marbleForShooting.geometry.parameters.radius;
-    marbles.each(function (marble, row, col) {
+    marbles.each(function(marble, row, col) {
       if (
         game.marbleForShooting.position.distanceTo(marble.position) <
         marbleWidth * 2
@@ -229,33 +238,33 @@ class Game {
     this.launched = false;
 
     this.resetMarbleForShooting();
-    if (this.shots % 5 == 0)
-      marbles.addRow();
-    this.checkGameOver()
+    if (this.shots % 5 == 0) marbles.addRow();
+    this.checkGameOver();
   }
 
   checkGameOver() {
-    marbles.each(function (marble) {
+    marbles.each(function(marble) {
       if (marble.position.z > settings.finishZ) {
-        game.gameOver()
-        return true
+        game.gameOver();
+        return true;
       }
-    })
-    return false
+    });
+    return false;
   }
 
   // dodaj cos tam
   gameOver() {
-    console.log('gameover')
-    this.scene.remove(this.marbleForShooting)
-    this.over = true
-    this.scene.remove(this.directionArrow)
-    setInterval(function () { marbles.addRow() }, 500)
-
+    console.log("gameover");
+    this.scene.remove(this.marbleForShooting);
+    this.over = true;
+    this.scene.remove(this.directionArrow);
+    setInterval(function() {
+      marbles.addRow();
+    }, 500);
   }
 
   addRandomElement() {
-    this.adding = setInterval(function () {
+    this.adding = setInterval(function() {
       var item =
         game.itemsList[Math.floor(Math.random() * game.itemsList.length)];
       console.log("Wylosowany przedmiot", item);

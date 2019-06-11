@@ -92,7 +92,7 @@ class Game {
 
   stats() {
     var script = document.createElement("script");
-    script.onload = function() {
+    script.onload = function () {
       var stats = new Stats();
       document.body.appendChild(stats.dom);
       requestAnimationFrame(function loop() {
@@ -119,7 +119,7 @@ class Game {
   }
 
   resizeWindow() {
-    $(window).on("resize", function() {
+    $(window).on("resize", function () {
       game.camera.aspect = window.innerWidth / window.innerHeight;
       game.camera.updateProjectionMatrix();
       game.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -153,7 +153,7 @@ class Game {
   }
 
   shoot() {
-    $(document).mousemove(function() {
+    $(document).mousemove(function () {
       if (game.canPlay) {
         if (!game.launched && !game.over) {
           if (game.directionArrow != null)
@@ -187,7 +187,9 @@ class Game {
         }
       }
     });
-    $(document).mousedown(function() {
+    $(document).mousedown(function () {
+      if (game.over)
+        return
       if (game.canPlay) {
         if (!game.launched) game.updateDirectionVector();
         game.launched = true;
@@ -218,7 +220,7 @@ class Game {
     )
       this.onWallCollision();
     var marbleWidth = this.marbleForShooting.geometry.parameters.radius;
-    marbles.each(function(marble, row, col) {
+    marbles.each(function (marble, row, col) {
       if (
         game.marbleForShooting.position.distanceTo(marble.position) <
         marbleWidth * 2
@@ -243,7 +245,7 @@ class Game {
   }
 
   checkGameOver() {
-    marbles.each(function(marble) {
+    marbles.each(function (marble) {
       if (marble.position.z > settings.finishZ) {
         game.gameOver();
         return true;
@@ -252,19 +254,20 @@ class Game {
     return false;
   }
 
-  // dodaj cos tam
   gameOver() {
     console.log("gameover");
+    $('#gameover').css('display', 'block')
+    $('#gameover').html('GAME OVER! <br>YOUR SCORE: ' + marbles.points)
     this.scene.remove(this.marbleForShooting);
     this.over = true;
     this.scene.remove(this.directionArrow);
-    setInterval(function() {
+    setInterval(function () {
       marbles.addRow();
     }, 500);
   }
 
   addRandomElement() {
-    this.adding = setInterval(function() {
+    this.adding = setInterval(function () {
       var item =
         game.itemsList[Math.floor(Math.random() * game.itemsList.length)];
       console.log("Wylosowany przedmiot", item);

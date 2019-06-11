@@ -7,15 +7,15 @@ var ObjectID = require("mongodb").ObjectID;
 
 app.use(express.static("static"));
 
-http.listen(3000, function() {
+http.listen(3000, function () {
   console.log("Listening on 3000...");
 });
 
 var _db;
 
-mongoClient.connect("mongodb://localhost/admin", function(err, db) {
+mongoClient.connect("mongodb://localhost/admin", function (err, db) {
   _db = db;
-  db.admin().listDatabases(function(err, dbs) {
+  db.admin().listDatabases(function (err, dbs) {
     if (err) console.log(err);
     else {
       var exists = false;
@@ -28,14 +28,14 @@ mongoClient.connect("mongodb://localhost/admin", function(err, db) {
       }
 
       if (!exists) {
-        mongoClient.connect("mongodb://localhost/leaderboard", function(
+        mongoClient.connect("mongodb://localhost/leaderboard", function (
           err,
           db
         ) {
           if (err) console.log(err);
           else {
-            db.createCollection("results", function(err, coll) {
-              coll.insert({ a: 1 }, function(err, result) {});
+            db.createCollection("results", function (err, coll) {
+              coll.insert({ a: 1 }, function (err, result) { });
             });
           }
         });
@@ -46,13 +46,13 @@ mongoClient.connect("mongodb://localhost/admin", function(err, db) {
 
 var players = [];
 
-socketio.on("connection", function(client) {
+socketio.on("connection", function (client) {
   console.log("Klient się podłączył " + client.id);
   client.emit("onconnect", {
     clientName: client.id
   });
 
-  client.on("disconnect", function() {
+  client.on("disconnect", function () {
     for (let i = 0; i < players.length; i++) {
       if (players[i].id == client.id) {
         console.log("Disconnect playera o ID ", client.id);
@@ -62,7 +62,7 @@ socketio.on("connection", function(client) {
     }
   });
 
-  client.on("createPlayer", function(data) {
+  client.on("createPlayer", function (data) {
     if (players.includes(data.user)) {
       var data = {
         action: "USER_ALREADY_EXISTS",
@@ -81,7 +81,7 @@ socketio.on("connection", function(client) {
     }
   });
 
-  client.on("wait", function() {
+  client.on("wait", function () {
     if (players.length >= 2) {
       socketio.sockets.to(client.id).emit("wait", { wait: false });
     } else {
@@ -89,21 +89,21 @@ socketio.on("connection", function(client) {
     }
   });
 
-  client.on("updateRanking", function(data) {
+  client.on("updateRanking", function (data) {
     var coll;
     var add = true;
     mongoClient.connect(
       "mongodb://localhost/leaderboard",
-      function(err, db) {
+      function (err, db) {
         if (err) {
           throw err;
         } else {
-          db.collection("results", function(err, collection) {
+          db.collection("results", function (err, collection) {
             if (err) {
               throw err;
             } else {
-              collection.find({}, function(err, results) {
-                results.each(function(err, res) {
+              collection.find({}, function (err, results) {
+                results.each(function (err, res) {
                   console.log("Wiersz", res);
                   if (res != null) {
                     console.log("Kolekcja nie jest pusta");
@@ -119,14 +119,14 @@ socketio.on("connection", function(client) {
             if (add) {
               var collection = db.collection("results");
               var data = { nickname: data.nickname, points: data.points };
-              collection.insert(data, function(err, result) {
+              collection.insert(data, function (err, result) {
                 console.log("Dodano wynik");
               });
             }
           });
 
-          db.collection("results", function(err, collection) {
-            collection.find({}, function(err, result) {
+          db.collection("results", function (err, collection) {
+            collection.find({}, function (err, result) {
               coll = result;
             });
           });

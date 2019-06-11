@@ -2,21 +2,21 @@ class Net {
   constructor() {
     console.log("Konstruktor klasy Net.");
     this.client = io();
-    this.client.on("onconnect", function(data) {
+    this.client.on("onconnect", function (data) {
       game.playerId = data.clientName;
       console.log("Twoje ID", game.playerId);
     });
 
-    this.client.on("createPlayer", function(data) {
+    this.client.on("createPlayer", function (data) {
       console.log("Stworzono usera.");
       ui.changeStatus(data);
     });
 
-    this.client.on("wait", function(data) {
+    this.client.on("wait", function (data) {
       ui.waitForPlayer = data.wait;
     });
 
-    this.client.on("updateRanking", function(data) {
+    this.client.on("updateRanking", function (data) {
       ui.refreshLeaderboard(data);
     });
   }

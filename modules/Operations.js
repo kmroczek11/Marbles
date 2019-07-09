@@ -82,10 +82,10 @@ module.exports = {
                 { _id: results[i]._id },
                 results[i]
               );
-              exists = true;
-              callback(true);
-              break;
             }
+            exists = true;
+            callback(true);
+            break;
           }
         }
 

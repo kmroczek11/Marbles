@@ -63,7 +63,15 @@ socketio.on("connection", function(client) {
   });
 
   client.on("createPlayer", function(data) {
-    if (players.includes(data.user)) {
+    let exists = false;
+    for (let i = 0; i < players.length; i++) {
+      if (players[i].login == data.user) {
+        exists = true;
+        break;
+      }
+    }
+    if (exists) {
+      console.log("Player istnieje");
       var data = {
         action: "USER_ALREADY_EXISTS",
         user: ""

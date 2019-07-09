@@ -53,6 +53,17 @@ class Ui {
     waitProgress.append(loading);
 
     overlay.append(waitProgress);
+
+    var info = $("<input>");
+    info.addClass("info");
+    info.attr("type", "image");
+    info.attr("src", "../gfx/info.png");
+    info.click(function() {
+      console.log("info");
+      ui.createInfoPanel();
+    });
+
+    info.appendTo("body");
   }
 
   clicks() {
@@ -111,5 +122,26 @@ class Ui {
       tr.append(points);
       $("#leaderboard").append(tr);
     }
+  }
+
+  createInfoPanel() {
+    var infoBox = $("<div>");
+    infoBox.addClass("infoBox");
+    infoBox.html(
+      "Witaj w grze kulki! Gra polega na zdobyciu jak najwiekszej liczby punktow.<br/>W grze dostepny jest ranking live pokazujacy wyniki innych graczy.<br/><br/>"
+    );
+    infoBox.append(
+      "Po zebraniu lodu kulka leci wolniej <img src='../gfx/ice.png'></br>Po zebraniu rakiety kulka leci szybciej <img src='../gfx/rocket.png'>"
+    );
+    var closeBt = $("<input>");
+    closeBt.addClass("close");
+    closeBt.attr("type", "image");
+    closeBt.attr("src", "../gfx/close.png");
+    closeBt.click(function() {
+      console.log("closeBt");
+      $(".infoBox").remove();
+    });
+    closeBt.appendTo(infoBox);
+    infoBox.appendTo("body");
   }
 }

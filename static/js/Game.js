@@ -20,7 +20,7 @@ class Game {
     this.shoot();
     this.over = false;
     this.canPlay = false;
-    this.speed = 20;
+    this.speed = 60;
   }
 
   initThree() {

@@ -13,7 +13,7 @@ Aby uruchomić projekt musimy mieć zainstalowany Node.js.
 Po pobraniu otworzyć konsolę w folderze projektu (przytrzymać SHIFT i kliknąć prawym na folder, następnie z menu podręcznego wybrać "Otwórz tutaj okno programu Powershell" lub podobne)).
 W okienku konsoli wpisać "node server.js" lub "node .\server.js".
 Jeśli polecenie nie działa być może wywoływane jest w folderze, w którym nie ma pliku "server.js".
-Jeśli wszystko dobrze zrobiliśmy wyświetli się napis "Listening on 3000".
+Jeśli wszystko dobrze zrobiliśmy wyświetli się napis "Listening on 3000...".
 Przechodzimy do przeglądarki i w pasku adresu wpisujemy "localhost:3000".
 Powinien otworzyć się projekt.
 

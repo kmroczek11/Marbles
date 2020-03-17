@@ -21,3 +21,4 @@ Działanie projektu:
 Podajemy swoją nazwę gracza i oczekujemy na drugiego.
 Otrzymujemy stosowne komunikaty odnośnie graczy w grze.
 W osobnej karcie podajemy inną nazwę i wchodzimy do gry.
+To be continued...

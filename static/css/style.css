@@ -1,0 +1,200 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+  margin: 0;
+  user-select: none;
+}
+
+@font-face {
+  font-family: "Bubblegum";
+  src: url("../fonts/Bubblegum.ttf");
+}
+
+#points {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 40px;
+  color: white;
+  font-family: "Bubblegum";
+}
+
+#clock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: white;
+  top: 50px;
+  right: 0;
+  font-size: 60px;
+  font-family: "Bubblegum";
+  color: black;
+  border: 20px solid black;
+  border-radius: 80px;
+  margin:20px
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.statusBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  background: rgb(48, 48, 48);
+  border-bottom: 2px solid black;
+}
+
+.boxToLogin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  top: 30%;
+  bottom: 10%;
+  left: 2%;
+  height: 60%;
+  border: 3px solid black;
+  width: 95%;
+  border-radius: 100px;
+}
+
+.loginP {
+  color: black;
+  font-size: 6vw;
+  font-weight: 900;
+  margin: 0;
+  font-family: "Bubblegum";
+}
+
+.nickname {
+  border: 3px solid black;
+  border-radius: 20px;
+  background: transparent;
+  color: white;
+  font-size: 4vw;
+  text-align: center;
+  width: 40%;
+  height: 15%;
+}
+
+.login,
+.reset {
+  width: 40%;
+  height: 15%;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 3.5vw;
+  font-weight: normal;
+  font-family: "Bubblegum";
+}
+
+.status {
+  padding: 1%;
+  font-size: 3.5vw;
+  color: black;
+  margin: 0;
+  text-align: right;
+  font-family: "Bubblegum";
+}
+
+.wait {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  font-size: 3.5vw;
+  color: black;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  display: none;
+  font-family: "Bubblegum";
+}
+
+.loading {
+  width: 200px;
+  height: 200px;
+}
+
+#leaderboard {
+  position: absolute;
+  left: 20px;
+  top: 200px;
+  background: white;
+  font-size: 20px;
+  font-family: "Bubblegum";
+}
+
+#gameover {
+  position: fixed;
+  display: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 2;
+  text-align: center;
+  font-size: 40px;
+  color: white;
+  font-family: "Bubblegum";
+  padding-top: 20%;
+}
+
+.info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+}
+
+.infoBox {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  top: 30%;
+  bottom: 10%;
+  left: 2%;
+  height: 60%;
+  border: 3px solid black;
+  width: 95%;
+  border-radius: 100px;
+  background: white;
+  font-family: "Bubblegum";
+  font-size: 20px;
+  text-align: center;
+}
+
+.close {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+  width: 30px;
+  height: 30px;
+}

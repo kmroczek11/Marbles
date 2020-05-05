@@ -9,6 +9,13 @@ Nauczyłem się tworzyć prostą grę logiczną.
 HTML, CSS, JavaScript, jQuery, Node.js, Three.js, Socket.IO, MongoDB
 
 #### Uruchomienie:
+Jeśli nie posiadamy odpowiedniej wersji Mongo, należy ją pobrać z linku: 
+#### https://mega.nz/file/ZrgFVbCQ#skjnsyVctqPh_HHV5Lj_nWYUQjccQ9hhzg-CyQJV2IQ
+Przejść do folderu mongodb, następnie bin i tam z poziomu konsoli uruchomić:
+#### ./mongod --dbpath=..\..\data\db
+W osobnej konsoli:
+#### ./mongo
+
 Aby uruchomić projekt musimy mieć zainstalowany Node.js.
 Po pobraniu otworzyć konsolę w folderze projektu (przytrzymać SHIFT i kliknąć prawym na folder, następnie z menu podręcznego wybrać "Otwórz tutaj okno programu Powershell" lub podobne)).
 W okienku konsoli wpisać "node server.js" lub "node .\server.js".

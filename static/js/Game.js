@@ -156,7 +156,7 @@ class Game {
       console.log(this.time);
       this.time += 1;
       $("#clock").html(this.time);
-      if (this.time % 10 == 0) {
+      if (this.time % 5 == 0) {
         marbles.addRow();
         this.checkGameOver();
       }
@@ -258,10 +258,10 @@ class Game {
     this.launched = false;
 
     this.resetMarbleForShooting();
-    if (this.shots % 5 == 0) {
-      marbles.addRow();
-      this.checkGameOver();
-    }
+    // if (this.shots % 5 == 0) {
+    //   marbles.addRow();
+    //   this.checkGameOver();
+    // }
   }
 
   checkGameOver() {
@@ -277,7 +277,7 @@ class Game {
   gameOver() {
     console.log("gameover");
     $("#gameover").css("display", "block");
-    $("#gameover").html("GAME OVER! <br>YOUR SCORE: " + marbles.points);
+    $("#gameover").html("GAME OVER!");
     clearInterval(this.clock);
     this.scene.remove(this.marbleForShooting);
     this.over = true;

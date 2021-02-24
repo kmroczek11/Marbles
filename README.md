@@ -12,7 +12,7 @@ HTML, CSS, JavaScript, jQuery, Node.js, Three.js, Socket.IO, MongoDB
 Jeśli nie posiadamy odpowiedniej wersji Mongo, należy ją pobrać z linku: 
 #### https://mega.nz/file/ZrgFVbCQ#skjnsyVctqPh_HHV5Lj_nWYUQjccQ9hhzg-CyQJV2IQ
 Przejść do folderu mongodb, następnie bin i tam z poziomu konsoli uruchomić:
-#### ./mongod --dbpath=....\data\db
+#### ./mongod --dbpath=..\..\data\db
 W osobnej konsoli:
 #### ./mongo
 

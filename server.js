@@ -13,8 +13,10 @@ http.listen(3000, function () {
 
 var client;
 
+const uri = process.env.MONGODB_URI;
+
 mongoClient.connect(
-  "mongodb://localhost/",
+  uri,
   {
     useUnifiedTopology: true,
     useNewUrlParser: true,

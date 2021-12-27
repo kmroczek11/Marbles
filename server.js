@@ -7,7 +7,10 @@ var opers = require("./modules/Operations.js");
 
 app.use(express.static("static"));
 
-http.listen(3000, function () {
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || "0.0.0.0";
+
+http.listen(PORT, HOST, function () {
   console.log("Listening on 3000...");
 });
 
@@ -39,17 +42,17 @@ mongoClient.connect(
           }
 
           if (!exists) {
-            mongoClient.connect("mongodb://localhost/leaderboard", function (
-              err,
-              db
-            ) {
-              if (err) console.log(err);
-              else {
-                db.createCollection("results", function (err, coll) {
-                  coll.insert({ a: 1 }, function (err, result) {});
-                });
+            mongoClient.connect(
+              `${uri}/leaderboard`,
+              function (err, db) {
+                if (err) console.log(err);
+                // else {
+                //   db.createCollection("results", function (err, coll) {
+                //     coll.insert({ a: 1 }, function (err, result) {});
+                //   });
+                // }
               }
-            });
+            );
           }
         }
       });

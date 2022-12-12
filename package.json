@@ -4,7 +4,7 @@
   "description": "Opis:\r Gra polegająca na zbijaniu kulek o odpowiednich kolorach.",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "mongodb": "^3.5.4",
     "socketio": "^1.0.0"
   },
